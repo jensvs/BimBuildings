@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Application BimBuildings</Name>
+    <Assembly>BimBuildings.dll</Assembly>
+    <FullClassName>BimBuildings.Ribbon.RibbonApp</FullClassName>
+    <ClientId>35b4e00f-4742-4081-a10f-f6976fc36fba</ClientId>
+    <VendorId>com.bimsquared</VendorId>
+    <VendorDescription>James Simpson, https://bimsquared.com </VendorDescription>
+  </AddIn>
+</RevitAddIns>
