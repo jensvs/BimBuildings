@@ -5,7 +5,7 @@
     <Assembly>BimBuildings.dll</Assembly>
     <FullClassName>BimBuildings.Ribbon.RibbonApp</FullClassName>
     <ClientId>35b4e00f-4742-4081-a10f-f6976fc36fba</ClientId>
-    <VendorId>com.bimsquared</VendorId>
-    <VendorDescription>James Simpson, https://bimsquared.com </VendorDescription>
+    <VendorId>BimBuildings</VendorId>
+    <VendorDescription>BimBuildings http://www.bimbuildings.nl </VendorDescription>
   </AddIn>
 </RevitAddIns>

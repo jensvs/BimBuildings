@@ -66,6 +66,8 @@
       <HintPath>$(ProgramW6432)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\PresentationCore.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms">
       <HintPath>$(ProgramW6432)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.dll</HintPath>
       <Private>False</Private>
@@ -75,13 +77,34 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Xml" />
     <!-- References to include in your project.
          If you have non standard location for revit you will have to edit the paths -->
   </ItemGroup>
   <!-- Compile these file on build -->
   <ItemGroup>
+    <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommand.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommandData.cs" />
+    <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.Designer.cs">
+      <DependentUpon>TagWallLayersForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommandData.cs" />
+    <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommand.cs" />
+    <Compile Include="Command\Helpers\Message.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Ribbon\RibbonApp.cs" />
     <Compile Include="Command\HelloWorld.cs" />
+    <Compile Include="Type\WindowType.cs" />
+    <Compile Include="Type\LengthUnitType.cs" />
+    <Compile Include="Util\LengthUnitConverter.cs" />
+    <Compile Include="Util\SelectionFilterByCategory.cs" />
     <Compile Include="Util\Ribbon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -90,6 +113,16 @@
     <Content Include="BimBuildings.addin" />
     <Content Include="Resources\Building.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Command\Annotations\TagWallLayers\TagWallLayersForm.resx">
+      <DependentUpon>TagWallLayersForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- These are your Build actions in your project properties. They place your addin file and dll with Revit for use. -->
   <!-- Your debug build copies to appdata so only you can access it -->

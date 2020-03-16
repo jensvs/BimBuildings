@@ -38,7 +38,27 @@ namespace BimBuildings.Ribbon
             /*ToolTipImage*/               "Building.Png",
             /*Website*/                    website);
 
+            BimBuildings.CreateRibbonPanel(application,
+            /*Tab Name*/                   tabName,
+            /*Panel Name*/                 "Annotations",
+            /*Button Name*/                "Tag wall" + System.Environment.NewLine + "layers",
+            /*Name of dll file*/           thisAssemblyPath,
+            /*Command*/                    "BimBuildings.TagWallLayersCommand", 
+            /*Image*/                      "Building.Png",
+            /*ToolTip*/                    "Just an example of tooltip info you can include",
+            /*ToolTipImage*/               "Building.Png",
+            /*Website*/                    website);
 
+            BimBuildings.CreateRibbonPanel(application,
+            /*Tab Name*/                   tabName,
+            /*Panel Name*/                 "Test",
+            /*Button Name*/                "Auto" + System.Environment.NewLine + "Dimension",
+            /*Name of dll file*/           thisAssemblyPath,
+            /*Command*/                    "BimBuildings.AutoDimensionCommand",
+            /*Image*/                      "Building.Png",
+            /*ToolTip*/                    "Just an example of tooltip info you can include",
+            /*ToolTipImage*/               "Building.Png",
+            /*Website*/                    website);
 
             return Result.Succeeded;
         }
