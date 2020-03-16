@@ -7,20 +7,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BimBuildings.Util;
 
 namespace BimBuildings.Command
 {
     [Transaction(TransactionMode.Manual)]
     class HelloWorld : IExternalCommand
     {
+        public enum Categories
+        {
+            walls = BuiltInCategory.OST_Walls,
+            floors = BuiltInCategory.OST_Floors
+        }
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Application app = uiapp.Application;
-            Document doc = uidoc.Document;
+            var collector = new Collector();
 
-            TaskDialog.Show("Title", "Hello World!");
+            StringBuilder sb = new StringBuilder();
+            foreach (var element in collector.GetElements(commandData, Categories.walls))
+            {
+                sb.Append(element + "\n");
+            }
+            TaskDialog.Show("Title", sb.ToString());
+
+            
+
             return Result.Succeeded;
         }
     }

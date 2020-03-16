@@ -82,6 +82,7 @@
   <ItemGroup>
     <Compile Include="Ribbon\RibbonApp.cs" />
     <Compile Include="Command\HelloWorld.cs" />
+    <Compile Include="Util\Collector.cs" />
     <Compile Include="Util\Ribbon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
