@@ -42,8 +42,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.cmbUnitType = new System.Windows.Forms.ComboBox();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.label5 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -214,18 +214,7 @@
             this.panel2.TabIndex = 5;
             this.panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.panel2_Paint);
             this.panel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Form_MouseDown);
-            // 
-            // panel3
-            // 
-            this.panel3.BackColor = System.Drawing.Color.DodgerBlue;
-            this.panel3.Controls.Add(this.label5);
-            this.panel3.Controls.Add(this.btnCancel);
-            this.panel3.Controls.Add(this.btnOk);
-            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel3.Location = new System.Drawing.Point(0, 329);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(302, 42);
-            this.panel3.TabIndex = 5;
+            this.panel2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Form_MouseMove);
             // 
             // label4
             // 
@@ -238,6 +227,18 @@
             this.label4.Size = new System.Drawing.Size(121, 18);
             this.label4.TabIndex = 0;
             this.label4.Text = "Tag Wall Layers";
+            // 
+            // panel3
+            // 
+            this.panel3.BackColor = System.Drawing.Color.DodgerBlue;
+            this.panel3.Controls.Add(this.label5);
+            this.panel3.Controls.Add(this.btnCancel);
+            this.panel3.Controls.Add(this.btnOk);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.panel3.Location = new System.Drawing.Point(0, 329);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(302, 42);
+            this.panel3.TabIndex = 5;
             // 
             // label5
             // 
