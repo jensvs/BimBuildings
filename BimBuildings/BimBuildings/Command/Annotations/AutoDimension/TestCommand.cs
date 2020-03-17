@@ -72,28 +72,39 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     return Result.Cancelled;
                 }
 
-                string data = string.Empty;
-
                 // Options
                 Options options = new Options();
                 options.IncludeNonVisibleObjects = true;
                 options.ComputeReferences = true;
                 options.View = doc.ActiveView;
 
-                StringBuilder sb = new StringBuilder();
+                ReferenceArray references = new ReferenceArray();
+                
+                foreach(var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Left))
+                {
+                    references.Append(e);
+                }
 
-                selectionFamily.GetReferences(FamilyInstanceReferenceType.Left);
-                selectionFamily.GetReferences(FamilyInstanceReferenceType.Right);
+                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Right))
+                {
+                    references.Append(e);
+                }
 
-                ItemFactoryBase.NewDimension(doc.ActiveView, line, references);
+                using(Transaction t = new Transaction(doc))
+                {
+                    t.Start();
 
+                    var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
+                    var sketchPlane = SketchPlane.Create(doc, plane);
+                    activeView.SketchPlane = sketchPlane;
 
-                //foreach(GeometryObject geometryObject in selectionFamily.get_Geometry(options))
-                //{
-                //    sb.Append(geometryObject + "\n");
-                //}
+                    XYZ pickPoint = uidoc.Selection.PickPoint();
+                    Line line = Line.CreateBound(pickPoint, pickPoint);
 
-                TaskDialog.Show("test", selectionFamily.GetReferences(FamilyInstanceReferenceType.Left).ToString());
+                    doc.Create.NewDimension(doc.ActiveView, line, references);
+
+                    t.Commit();
+                }
             }
 
             return Result.Succeeded;
