@@ -60,6 +60,17 @@ namespace BimBuildings.Ribbon
             /*ToolTipImage*/               "Building.Png",
             /*Website*/                    website);
 
+            BimBuildings.CreateRibbonPanel(application,
+            /*Tab Name*/                   tabName,
+            /*Panel Name*/                 "Jens",
+            /*Button Name*/                "Jens" + System.Environment.NewLine + "Dimension",
+            /*Name of dll file*/           thisAssemblyPath,
+            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.TestCommand",
+            /*Image*/                      "Building.Png",
+            /*ToolTip*/                    "Just an example of tooltip info you can include",
+            /*ToolTipImage*/               "Building.Png",
+            /*Website*/                    website);
+
             return Result.Succeeded;
         }
 

@@ -14,18 +14,20 @@ namespace BimBuildings.Command
     [Transaction(TransactionMode.Manual)]
     class HelloWorld : IExternalCommand
     {
-        enum Categories
+        class Categories
         {
-            walls = BuiltInCategory.OST_Walls,
-            floors = BuiltInCategory.OST_Floors
+            public BuiltInCategory walls = BuiltInCategory.OST_Walls;
+            public BuiltInCategory floors = BuiltInCategory.OST_Floors;
+            public BuiltInCategory roofs = BuiltInCategory.OST_Roofs;
         }
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var collector = new Collector();
+            var category = new Categories();
 
             StringBuilder sb = new StringBuilder();
-            foreach (var element in collector.GetElements(commandData, (Categories)0))
+            foreach (var element in collector.GetElements(commandData, category.walls))
             {
                 sb.Append(element + "\n");
             }
