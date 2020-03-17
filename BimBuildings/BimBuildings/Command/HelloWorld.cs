@@ -14,7 +14,7 @@ namespace BimBuildings.Command
     [Transaction(TransactionMode.Manual)]
     class HelloWorld : IExternalCommand
     {
-        public enum Categories
+        enum Categories
         {
             walls = BuiltInCategory.OST_Walls,
             floors = BuiltInCategory.OST_Floors
@@ -25,7 +25,7 @@ namespace BimBuildings.Command
             var collector = new Collector();
 
             StringBuilder sb = new StringBuilder();
-            foreach (var element in collector.GetElements(commandData, Categories.walls))
+            foreach (var element in collector.GetElements(commandData, (Categories)0))
             {
                 sb.Append(element + "\n");
             }
