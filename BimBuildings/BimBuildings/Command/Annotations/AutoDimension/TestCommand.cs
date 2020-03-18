@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
+using BimBuildings.Command.Annotations.AutoDimension;
 using Autodesk.Revit.Creation;
 using System;
 using System.Collections.Generic;
@@ -79,29 +80,39 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.View = doc.ActiveView;
 
                 ReferenceArray references = new ReferenceArray();
+                StringBuilder sb = new StringBuilder();
                 
-                foreach(var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Left))
+                foreach(var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 {
                     references.Append(e);
                 }
 
-                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Right))
+                LocationPoint point = selectionElement.Location as LocationPoint;
+                if(null != point)
                 {
-                    references.Append(e);
+                    XYZ aa = point.Point;
+                    XYZ bb = new XYZ(aa.X, aa.Y, aa.Z + 10);
+
+                    sb.Append(aa);
+                    sb.Append(bb);
                 }
 
-                using(Transaction t = new Transaction(doc))
+                XYZ dir = new XYZ(0, 1, 0);
+
+                using (Transaction t = new Transaction(doc))
                 {
-                    t.Start();
+                    t.Start("dimension");
 
-                    var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
-                    var sketchPlane = SketchPlane.Create(doc, plane);
-                    activeView.SketchPlane = sketchPlane;
+                    TaskDialog.Show("ttt", sb.ToString());
 
-                    XYZ pickPoint = uidoc.Selection.PickPoint();
-                    Line line = Line.CreateBound(pickPoint, pickPoint);
+                    //var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
+                    //var sketchPlane = SketchPlane.Create(doc, plane);
+                    //activeView.SketchPlane = sketchPlane;
+                    
+                    //XYZ pickPoint = uidoc.Selection.PickPoint();
+                    //Line line = Line.CreateBound(pickPoint, pickPoint + dir * 100);
 
-                    doc.Create.NewDimension(doc.ActiveView, line, references);
+                    //doc.Create.NewDimension(doc.ActiveView, line, references);
 
                     t.Commit();
                 }

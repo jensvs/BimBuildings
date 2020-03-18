@@ -1,10 +1,13 @@
-﻿namespace BimBuildings
+﻿using Autodesk.Revit.DB;
+
+namespace BimBuildings
 {
     public class AutoDimensionCommandData
     {
-        public AutoDimensionCommandData()
-        {
+        public XYZ Direction { get; set; }
+        public double Rotation { get; }
 
-        }
+        public AutoDimensionCommandData()
+        {        }
     }
 }
