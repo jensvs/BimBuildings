@@ -81,44 +81,93 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 ReferenceArray references = new ReferenceArray();
                 StringBuilder sb = new StringBuilder();
-                
-                foreach(var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
+                XYZ dir = new XYZ();
+                dir = activeView.ViewDirection;
+
+                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 {
                     references.Append(e);
                 }
-
-                LocationPoint point = selectionElement.Location as LocationPoint;
-                if(null != point)
-                {
-                    XYZ aa = point.Point;
-                    XYZ bb = new XYZ(aa.X, aa.Y, aa.Z + 10);
-
-                    sb.Append(aa);
-                    sb.Append(bb);
-                }
-
-                XYZ dir = new XYZ(0, 1, 0);
-
+                
                 using (Transaction t = new Transaction(doc))
                 {
                     t.Start("dimension");
 
-                    TaskDialog.Show("ttt", sb.ToString());
+                    //TaskDialog.Show("ttt", GetDirection(dir).ToString());
 
-                    //var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
-                    //var sketchPlane = SketchPlane.Create(doc, plane);
-                    //activeView.SketchPlane = sketchPlane;
-                    
-                    //XYZ pickPoint = uidoc.Selection.PickPoint();
-                    //Line line = Line.CreateBound(pickPoint, pickPoint + dir * 100);
+                    var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
+                    var sketchPlane = SketchPlane.Create(doc, plane);
+                    activeView.SketchPlane = sketchPlane;
 
-                    //doc.Create.NewDimension(doc.ActiveView, line, references);
+                    //Get all DimensionTypes
+                    FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc);
+                    DimensionTypeCollector.OfClass(typeof(DimensionType));
+
+
+                    XYZ pickpoint = uidoc.Selection.PickPoint();
+                    Line line = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
+                    DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().FirstOrDefault();
+
+                    doc.Create.NewDimension(doc.ActiveView, line, references, dimensionType);
 
                     t.Commit();
                 }
             }
 
             return Result.Succeeded;
+        }
+
+        public XYZ GetDirection(XYZ viewDir)
+        {
+            XYZ direction = XYZ.Zero;
+
+            if(viewDir.X == 1 || viewDir.X == -1)
+            {
+                direction = new XYZ(0, 1, 0);
+                return direction;
+
+            }else if(viewDir.Y == 1 || viewDir.Y == -1)
+            {
+                direction = new XYZ(1, 0, 0);
+                return direction;
+            }else
+            {
+                double degrees = Math.Round(Math.Atan2(viewDir.X, viewDir.Y) * (180 / Math.PI));
+                double radians;
+
+                if(degrees < 0)
+                {
+                    degrees = degrees + 180;
+
+                    if(degrees > 90)
+                    {
+                        radians = (degrees - 90) * (Math.PI / 180);
+                        direction = new XYZ(Math.Tan(radians), 1, 0);
+                        return direction;
+                    }
+                    else
+                    {
+                        radians = (degrees + 90) * (Math.PI / 180);
+                        direction = new XYZ(Math.Tan(radians), 1, 0);
+                        return direction;
+                    }
+                }
+                else
+                {
+                    if (degrees > 90)
+                    {
+                        radians = (degrees - 90) * (Math.PI / 180);
+                        direction = new XYZ(Math.Tan(radians), 1, 0);
+                        return direction;
+                    }
+                    else
+                    {
+                        radians = (degrees + 90) * (Math.PI / 180);
+                        direction = new XYZ(Math.Tan(radians), 1, 0);
+                        return direction;
+                    }
+                }
+            }
         }
     }
 }
