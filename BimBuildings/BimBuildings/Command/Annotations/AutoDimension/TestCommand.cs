@@ -93,20 +93,31 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 {
                     t.Start("dimension");
 
-                    //TaskDialog.Show("ttt", GetDirection(dir).ToString());
-
                     var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
                     var sketchPlane = SketchPlane.Create(doc, plane);
                     activeView.SketchPlane = sketchPlane;
 
                     //Get all DimensionTypes
-                    FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc);
-                    DimensionTypeCollector.OfClass(typeof(DimensionType));
 
+
+                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
+                    FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
+
+                    //foreach (var d in dimTypes)
+                    //{
+                    //    sb.Append(d.Name + "\n");
+
+                    //    if (d.Name.ToString() == "Diagonal - 2.5mm Arial")
+                    //    {
+                    //        dimType1.Append(d);
+                    //    }
+                    //}
+
+                    //TaskDialog.Show("ttt", sb.ToString());
 
                     XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line line = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().FirstOrDefault();
+                    DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().Last();
 
                     doc.Create.NewDimension(doc.ActiveView, line, references, dimensionType);
 
@@ -132,7 +143,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 return direction;
             }else
             {
-                double degrees = Math.Round(Math.Atan2(viewDir.X, viewDir.Y) * (180 / Math.PI));
+                double degrees = Math.Round(Math.Atan2(viewDir.X, viewDir.Y) * (180/Math.PI));
                 double radians;
 
                 if(degrees < 0)
