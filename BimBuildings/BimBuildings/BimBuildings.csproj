@@ -85,6 +85,7 @@
   <ItemGroup>
     <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommand.cs" />
     <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommandData.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\TestCommandData.cs" />
     <Compile Include="Command\Annotations\AutoDimension\TestCommand.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>

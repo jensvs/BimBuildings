@@ -55,7 +55,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             // Check if Dimension can be created
             if (!canCreateDimensionInView)
             {
-                Message.Display("Dimension can't be created in the current view.", WindowType.Error);
+                Message.Display("Dimension can't be created in the current view.", WindowType.Warning);
                 return Result.Cancelled;
             }
 
@@ -101,25 +101,28 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
 
                     //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
-                    FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
+                    FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
+                    DimensionType dimType = null;
 
-                    //foreach (var d in dimTypes)
-                    //{
-                    //    sb.Append(d.Name + "\n");
+                
 
-                    //    if (d.Name.ToString() == "Diagonal - 2.5mm Arial")
-                    //    {
-                    //        dimType1.Append(d);
-                    //    }
-                    //}
-
-                    //TaskDialog.Show("ttt", sb.ToString());
+                    foreach (Element e in dimensionTypeCollector)
+                    {                       
+                        if (e.Name == "Test")
+                        {
+                            dimType = e as DimensionType;
+                        }
+                    }
+                    if (dimType == null)
+                    {
+                        Message.Display("There is no dimension type named Test", WindowType.Warning);
+                        return Result.Cancelled;
+                    }
 
                     XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line line = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().Last();
 
-                    doc.Create.NewDimension(doc.ActiveView, line, references, dimensionType);
+                    doc.Create.NewDimension(doc.ActiveView, line, references, dimType);
 
                     t.Commit();
                 }
