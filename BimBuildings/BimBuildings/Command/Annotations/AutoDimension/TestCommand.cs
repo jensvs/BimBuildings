@@ -79,14 +79,26 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.ComputeReferences = true;
                 options.View = doc.ActiveView;
 
-                ReferenceArray references = new ReferenceArray();
+                ReferenceArray referencesLR = new ReferenceArray();
+                ReferenceArray referenceTB = new ReferenceArray();
                 StringBuilder sb = new StringBuilder();
                 XYZ dir = new XYZ();
                 dir = activeView.ViewDirection;
+                XYZ dirTB = new XYZ(0, 0, 1);
+
+                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                {
+                    referenceTB.Append(e);
+                }
+
+                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
+                {
+                    referenceTB.Append(e);
+                }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 {
-                    references.Append(e);
+                    referencesLR.Append(e);
                 }
                 
                 using (Transaction t = new Transaction(doc))
@@ -98,9 +110,6 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     activeView.SketchPlane = sketchPlane;
 
                     //Get all DimensionTypes
-
-
-                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
                     FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
 
                     //foreach (var d in dimTypes)
@@ -115,11 +124,15 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                     //TaskDialog.Show("ttt", sb.ToString());
 
-                    XYZ pickpoint = uidoc.Selection.PickPoint();
-                    Line line = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
+                    //XYZ pickpoint = uidoc.Selection.PickPoint();
+                    XYZ pickpoint = new XYZ(0,8,-1);
+
+                    Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
+                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
                     DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().Last();
 
-                    doc.Create.NewDimension(doc.ActiveView, line, references, dimensionType);
+                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimensionType);
+                    doc.Create.NewDimension(doc.ActiveView, lineTB, referenceTB, dimensionType);
 
                     t.Commit();
                 }
