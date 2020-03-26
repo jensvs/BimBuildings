@@ -79,6 +79,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.ComputeReferences = true;
                 options.View = doc.ActiveView;
 
+                // Get references which refer to the reference planes in the family
                 ReferenceArray referencesLR = new ReferenceArray();
                 ReferenceArray referencesTB = new ReferenceArray();
                 StringBuilder sb = new StringBuilder();
@@ -101,6 +102,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     referencesLR.Append(e);
                 }
                 
+                // Transaction for creating the dimensions
                 using (Transaction t = new Transaction(doc))
                 {
                     t.Start("dimension");
@@ -109,6 +111,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     var sketchPlane = SketchPlane.Create(doc, plane);
                     activeView.SketchPlane = sketchPlane;
 
+                    // Get dimension types and select the desired dimensiontype 
                     FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
                     DimensionType dimType = null;
 
@@ -125,27 +128,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                         return Result.Cancelled;
                     }
 
-                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
-                    FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
-                    DimensionType dimType = null;
-
-                    foreach (Element e in dimensionTypeCollector)
-                    {                       
-                        if (e.Name == "Test")
-                        {
-                            dimType = e as DimensionType;
-                        }
-                    }
-
-                    if (dimType == null)
-                    {
-                        Message.Display("There is no dimension type named Test", WindowType.Warning);
-                        return Result.Cancelled;
-                    }
-
+                    // Get dimension types and select the desired dimensiontype 
                     XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + GetDirection(dirTB) * 100);
+                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
 
                     doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
                     doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
