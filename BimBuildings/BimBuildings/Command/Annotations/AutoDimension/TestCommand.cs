@@ -55,7 +55,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             // Check if Dimension can be created
             if (!canCreateDimensionInView)
             {
-                Message.Display("Dimension can't be created in the current view.", WindowType.Error);
+                Message.Display("Dimension can't be created in the current view.", WindowType.Warning);
                 return Result.Cancelled;
             }
 
@@ -80,20 +80,20 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.View = doc.ActiveView;
 
                 ReferenceArray referencesLR = new ReferenceArray();
-                ReferenceArray referenceTB = new ReferenceArray();
+                ReferenceArray referencesTB = new ReferenceArray();
                 StringBuilder sb = new StringBuilder();
                 XYZ dir = new XYZ();
                 dir = activeView.ViewDirection;
-                XYZ dirTB = new XYZ(0, 0, 1);
-
-                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                {
-                    referenceTB.Append(e);
-                }
+                XYZ dirTB = new XYZ(0,0,1);
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 {
-                    referenceTB.Append(e);
+                    referencesTB.Append(e);
+                }
+
+                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                {
+                    referencesTB.Append(e);
                 }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
@@ -116,15 +116,14 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
                     DimensionType dimType = null;
 
-
-
                     foreach (Element e in dimensionTypeCollector)
-                    {
+                    {                       
                         if (e.Name == "Test")
                         {
                             dimType = e as DimensionType;
                         }
                     }
+
                     if (dimType == null)
                     {
                         Message.Display("There is no dimension type named Test", WindowType.Warning);
@@ -133,11 +132,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                     XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
-                    DimensionType dimensionType = dimensionTypeCollector.Cast<DimensionType>().Last();
+                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + GetDirection(dirTB) * 100);
 
-                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimensionType);
-                    doc.Create.NewDimension(doc.ActiveView, lineTB, referenceTB, dimensionType);
+                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
+                    doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
 
                     t.Commit();
                 }
