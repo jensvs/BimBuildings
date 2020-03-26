@@ -97,14 +97,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     var sketchPlane = SketchPlane.Create(doc, plane);
                     activeView.SketchPlane = sketchPlane;
 
-                    //Get all DimensionTypes
-
-
-                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
                     FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
                     DimensionType dimType = null;
-
-                
 
                     foreach (Element e in dimensionTypeCollector)
                     {                       
