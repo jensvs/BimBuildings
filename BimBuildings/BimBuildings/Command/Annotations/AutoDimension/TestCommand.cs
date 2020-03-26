@@ -110,26 +110,31 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     activeView.SketchPlane = sketchPlane;
 
                     //Get all DimensionTypes
-                    FilteredElementCollector DimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
 
-                    //foreach (var d in dimTypes)
-                    //{
-                    //    sb.Append(d.Name + "\n");
 
-                    //    if (d.Name.ToString() == "Diagonal - 2.5mm Arial")
-                    //    {
-                    //        dimType1.Append(d);
-                    //    }
-                    //}
+                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
+                    FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
+                    DimensionType dimType = null;
 
-                    //TaskDialog.Show("ttt", sb.ToString());
 
-                    //XYZ pickpoint = uidoc.Selection.PickPoint();
-                    XYZ pickpoint = new XYZ(0,8,-1);
 
+                    foreach (Element e in dimensionTypeCollector)
+                    {
+                        if (e.Name == "Test")
+                        {
+                            dimType = e as DimensionType;
+                        }
+                    }
+                    if (dimType == null)
+                    {
+                        Message.Display("There is no dimension type named Test", WindowType.Warning);
+                        return Result.Cancelled;
+                    }
+
+                    XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
                     Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
-                    DimensionType dimensionType = DimensionTypeCollector.Cast<DimensionType>().Last();
+                    DimensionType dimensionType = dimensionTypeCollector.Cast<DimensionType>().Last();
 
                     doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimensionType);
                     doc.Create.NewDimension(doc.ActiveView, lineTB, referenceTB, dimensionType);
