@@ -125,10 +125,6 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                         return Result.Cancelled;
                     }
 
-                    //IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc).WhereElementIsElementType().Cast<ElementType>().Where(q => q.FamilyName.Contains("Dimension"));
-                    FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
-                    DimensionType dimType = null;
-
                     foreach (Element e in dimensionTypeCollector)
                     {                       
                         if (e.Name == "Test")
@@ -145,7 +141,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                     XYZ pickpoint = uidoc.Selection.PickPoint();
                     Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + GetDirection(dirTB) * 100);
+                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
 
                     doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
                     doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
