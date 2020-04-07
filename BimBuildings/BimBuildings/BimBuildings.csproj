@@ -143,7 +143,8 @@ if exist "$(ProgramData)\Autodesk\REVIT\Addins\2019" xcopy "$(ProjectDir)$(Outpu
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
+    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe" sign /fd SHA256  /f "C:\Users\jenss\source\repos\BimBuildings\BimBuildings.pfx" /p ifcexporter "$(TargetPath)"
+if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)$(OutputPath)*.dll" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" xcopy /I /Y "$(ProjectDir)$(OutputPath)..\..\Resources"  "$(AppData)\Autodesk\REVIT\Addins\2019\Resources"
 </PostBuildEvent>

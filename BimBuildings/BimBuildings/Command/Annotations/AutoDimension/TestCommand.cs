@@ -86,9 +86,14 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 dir = activeView.ViewDirection;
                 XYZ dirTB = new XYZ(0,0,1);
 
+                LocationPoint location = selectionElement.Location as LocationPoint;
+                XYZ aa = location.Point;
+
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 {
                     referencesTB.Append(e);
+                    Element element = doc.GetElement(e);
+                    sb.Append(element);
                 }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
@@ -125,26 +130,16 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                         return Result.Cancelled;
                     }
 
-                    foreach (Element e in dimensionTypeCollector)
-                    {                       
-                        if (e.Name == "Test")
-                        {
-                            dimType = e as DimensionType;
-                        }
-                    }
+                    //XYZ pickpoint = uidoc.Selection.PickPoint();
+                    TaskDialog.Show("ddd", sb.ToString());
 
-                    if (dimType == null)
-                    {
-                        Message.Display("There is no dimension type named Test", WindowType.Warning);
-                        return Result.Cancelled;
-                    }
+                    //XYZ maatlijn = new XYZ(aa.X, aa.Y - 11, aa.Z - 2);
 
-                    XYZ pickpoint = uidoc.Selection.PickPoint();
-                    Line lineLR = Line.CreateBound(pickpoint, pickpoint + GetDirection(dir) * 100);
-                    Line lineTB = Line.CreateBound(pickpoint, pickpoint + dirTB * 100);
+                    //Line lineLR = Line.CreateBound(maatlijn, maatlijn + GetDirection(dir) * 100);
+                    //Line lineTB = Line.CreateBound(maatlijn, maatlijn + dirTB * 100);
 
-                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
-                    doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
+                    //doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
+                    //doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
 
                     t.Commit();
                 }
