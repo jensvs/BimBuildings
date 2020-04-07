@@ -79,6 +79,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.ComputeReferences = true;
                 options.View = doc.ActiveView;
 
+                // Get references which refer to the reference planes in the family
                 ReferenceArray referencesLR = new ReferenceArray();
                 ReferenceArray referencesTB = new ReferenceArray();
                 StringBuilder sb = new StringBuilder();
@@ -106,6 +107,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     referencesLR.Append(e);
                 }
                 
+                // Transaction for creating the dimensions
                 using (Transaction t = new Transaction(doc))
                 {
                     t.Start("dimension");
@@ -114,6 +116,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     var sketchPlane = SketchPlane.Create(doc, plane);
                     activeView.SketchPlane = sketchPlane;
 
+                    // Get dimension types and select the desired dimensiontype 
                     FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
                     DimensionType dimType = null;
 
