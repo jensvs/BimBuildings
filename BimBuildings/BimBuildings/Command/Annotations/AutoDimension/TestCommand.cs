@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BimBuildings.Util;
 
 namespace BimBuildings.Command.Annotations.AutoDimension
 {
@@ -17,6 +18,15 @@ namespace BimBuildings.Command.Annotations.AutoDimension
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            //String Builder
+            StringBuilder sb = new StringBuilder();
+
+            //Collector
+            Collector collector = new Collector();
+
+            //UnitConvertor
+            LengthUnitConverter converter = new LengthUnitConverter();
+
             // Application context.
             var uidoc = commandData.Application.ActiveUIDocument;
             var doc = uidoc.Document;
@@ -66,9 +76,12 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 var selectionReference = uidoc.Selection.PickObject(ObjectType.Element, new SelectionFilterByCategory("Generic Models"), "Select one generic model.");
                 Element selectionElement = doc.GetElement(selectionReference);
                 FamilyInstance selectionFamily = doc.GetElement(selectionReference) as FamilyInstance;
+                FamilySymbol familySymbol = selectionFamily.Symbol;
+
+                DimensionType dimType = collector.GetDimensionTypeByName(doc, "Test");
 
                 // Checks if selection isn't empty
-                if(selectionFamily == null)
+                if (selectionFamily == null)
                 {
                     return Result.Cancelled;
                 }
@@ -79,128 +92,136 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 options.ComputeReferences = true;
                 options.View = doc.ActiveView;
 
-                // Get references which refer to the reference planes in the family
-                ReferenceArray referencesLR = new ReferenceArray();
-                ReferenceArray referencesTB = new ReferenceArray();
-                StringBuilder sb = new StringBuilder();
-                XYZ dir = new XYZ();
-                dir = activeView.ViewDirection;
-                XYZ dirTB = new XYZ(0,0,1);
+                //Get type parameters of element
+                double MDK_breedte = familySymbol.LookupParameter("MDK_breedte").AsDouble();
 
-                LocationPoint location = selectionElement.Location as LocationPoint;
-                XYZ aa = location.Point;
+                //Get instance parameters of element
+                double MDK_offset_vooraanzicht = selectionFamily.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
+
+                // Get direction of Dimensions
+                XYZ dir = activeView.RightDirection;
+                XYZ dirTB = new XYZ(0, 0, 1);
+
+                // Get locationpoint of selected element
+                LocationPoint location = selectionFamily.Location as LocationPoint;
+                XYZ locationpoint = location.Point;
+
+                // Get references which refer to the reference planes in the family
+                ReferenceArray referencesTB = new ReferenceArray();
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
-                {
-                    referencesTB.Append(e);
-                    Element element = doc.GetElement(e);
-                    sb.Append(element);
-                }
+                { referencesTB.Append(e); }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                {
-                    referencesTB.Append(e);
-                }
+                { referencesTB.Append(e); }
+
+
+                ReferenceArray referencesLR = new ReferenceArray();
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
-                {
-                    referencesLR.Append(e);
-                }
+                { referencesLR.Append(e); }
                 
                 // Transaction for creating the dimensions
                 using (Transaction t = new Transaction(doc))
                 {
                     t.Start("dimension");
 
-                    var plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
-                    var sketchPlane = SketchPlane.Create(doc, plane);
+                    //Create and set workplane to place dimensions on
+                    Plane plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
+                    SketchPlane sketchPlane = SketchPlane.Create(doc, plane);
                     activeView.SketchPlane = sketchPlane;
 
-                    // Get dimension types and select the desired dimensiontype 
-                    FilteredElementCollector dimensionTypeCollector = new FilteredElementCollector(doc).OfClass(typeof(DimensionType));
-                    DimensionType dimType = null;
+                    //Create endpoints for line creation
+                    XYZ hoogtemaatvoering = GetDistance(locationpoint, dir, MDK_breedte);
+                    XYZ lengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
 
-                    foreach (Element e in dimensionTypeCollector)
-                    {                       
-                        if (e.Name == "Test")
-                        {
-                            dimType = e as DimensionType;
-                        }
-                    }
-                    if (dimType == null)
-                    {
-                        Message.Display("There is no dimension type named Test", WindowType.Warning);
-                        return Result.Cancelled;
-                    }
+                    //Create line for dimension
+                    Line lineLR = Line.CreateBound(lengtemaatvoering, lengtemaatvoering + dir * 100);
+                    Line lineTB = Line.CreateBound(hoogtemaatvoering, hoogtemaatvoering + dirTB * 100);
 
-                    //XYZ pickpoint = uidoc.Selection.PickPoint();
-                    TaskDialog.Show("ddd", sb.ToString());
-
-                    //XYZ maatlijn = new XYZ(aa.X, aa.Y - 11, aa.Z - 2);
-
-                    //Line lineLR = Line.CreateBound(maatlijn, maatlijn + GetDirection(dir) * 100);
-                    //Line lineTB = Line.CreateBound(maatlijn, maatlijn + dirTB * 100);
-
-                    //doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
-                    //doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
+                    //Create dimension
+                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
+                    doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
 
                     t.Commit();
                 }
             }
-
             return Result.Succeeded;
         }
 
-        public XYZ GetDirection(XYZ viewDir)
+        public XYZ GetDistance(XYZ locationpoint, XYZ dir, double width)
         {
-            XYZ direction = XYZ.Zero;
+            LengthUnitConverter converter = new LengthUnitConverter();
 
-            if(viewDir.X == 1 || viewDir.X == -1)
-            {
-                direction = new XYZ(0, 1, 0);
-                return direction;
+            XYZ point = XYZ.Zero;
+            const int maatlijn = 500;
+            double distance = (width + converter.ConvertToFeet(maatlijn));
 
-            }else if(viewDir.Y == 1 || viewDir.Y == -1)
+            if(dir.X == -1 || dir.X == 1)
             {
-                direction = new XYZ(1, 0, 0);
-                return direction;
-            }else
+                point = new XYZ(locationpoint.X + dir.X * distance,
+                        locationpoint.Y,
+                        locationpoint.Z);
+                return point;
+            }
+            else if(dir.Y == -1 || dir.Y == 1)
             {
-                double degrees = Math.Round(Math.Atan2(viewDir.X, viewDir.Y) * (180/Math.PI));
+                point = new XYZ(locationpoint.X,
+                        locationpoint.Y + dir.Y * distance,
+                        locationpoint.Z);
+                return point;
+            }
+            else
+            {
+                double degrees = Math.Round(Math.Atan2(dir.X, dir.Y) * (180 / Math.PI));
                 double radians;
+                double x;
+                double y;
 
-                if(degrees < 0)
+                if (degrees > 0 && degrees < 90)
                 {
+                    //+X, +Y
+                    radians = degrees * (Math.PI / 180);
+                    x = Math.Sin(radians) * distance;
+                    y = Math.Cos(radians) * distance;
+
+                    point = new XYZ(locationpoint.X + x, locationpoint.Y + y, locationpoint.Z);
+                    return point;
+                }
+                else if(degrees > 90 && degrees < 180)
+                {
+                    //+X, -Y
+                    degrees = degrees - 90;
+                    radians = degrees * (Math.PI / 180);
+                    x = Math.Cos(radians) * distance;
+                    y = Math.Sin(radians) * distance;
+
+                    point = new XYZ(locationpoint.X + x, locationpoint.Y - y, locationpoint.Z);
+                    return point;
+                }
+                else if(degrees > -90 && degrees < 0)
+                {
+                    //-X, +Y
+                    degrees = degrees + 90;
+                    radians = degrees * (Math.PI / 180);
+                    x = Math.Cos(radians) * distance;
+                    y = Math.Sin(radians) * distance;
+
+                    point = new XYZ(locationpoint.X - x, locationpoint.Y + y, locationpoint.Z);
+                    return point;
+                }
+                else if(degrees > -180 && degrees < -90)
+                {
+                    //-X, -Y
                     degrees = degrees + 180;
+                    radians = degrees * (Math.PI / 180);
+                    x = Math.Sin(radians) * distance;
+                    y = Math.Cos(radians) * distance;
 
-                    if(degrees > 90)
-                    {
-                        radians = (degrees - 90) * (Math.PI / 180);
-                        direction = new XYZ(Math.Tan(radians), 1, 0);
-                        return direction;
-                    }
-                    else
-                    {
-                        radians = (degrees + 90) * (Math.PI / 180);
-                        direction = new XYZ(Math.Tan(radians), 1, 0);
-                        return direction;
-                    }
+                    point = new XYZ(locationpoint.X - x, locationpoint.Y - y, locationpoint.Z);
+                    return point;
                 }
-                else
-                {
-                    if (degrees > 90)
-                    {
-                        radians = (degrees - 90) * (Math.PI / 180);
-                        direction = new XYZ(Math.Tan(radians), 1, 0);
-                        return direction;
-                    }
-                    else
-                    {
-                        radians = (degrees + 90) * (Math.PI / 180);
-                        direction = new XYZ(Math.Tan(radians), 1, 0);
-                        return direction;
-                    }
-                }
+                return point;
             }
         }
     }

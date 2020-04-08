@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.ApplicationServices;
+using System.Windows.Forms;
 
 namespace BimBuildings.Util
 {
@@ -83,6 +84,87 @@ namespace BimBuildings.Util
             { List_Floors.Add(w); }
 
             return List_Floors;
+        }
+
+        //*********************************************** Roofs ********************************************************************//
+        public List<RoofBase> GetRoofs(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Roofs = collector.OfCategory(BuiltInCategory.OST_Roofs).WhereElementIsNotElementType().ToElements();
+            List<RoofBase> List_Roofs = new List<RoofBase>();
+
+            foreach (RoofBase w in Roofs)
+            { List_Roofs.Add(w); }
+
+            return List_Roofs;
+        }
+
+        public List<RoofBase> GetRoofs(Document doc, ElementId viewId)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc, viewId);
+            ICollection<Element> Roofs = collector.OfCategory(BuiltInCategory.OST_Roofs).WhereElementIsNotElementType().ToElements();
+            List<RoofBase> List_Roofs = new List<RoofBase>();
+
+            foreach (RoofBase w in Roofs)
+            { List_Roofs.Add(w); }
+
+            return List_Roofs;
+        }
+
+        public List<RoofType> GetRoofTypes(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Roofs = collector.OfCategory(BuiltInCategory.OST_Roofs).WhereElementIsElementType().ToElements();
+            List<RoofType> List_Roofs = new List<RoofType>();
+
+            foreach (RoofType w in Roofs)
+            { List_Roofs.Add(w); }
+
+            return List_Roofs;
+        }
+
+        //*********************************************** Dimensions ********************************************************************//
+        public List<DimensionType> GetDimensionTypes(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Dimensions = collector.OfClass(typeof(DimensionType)).ToElements();
+            List<DimensionType> List_Dimensions = new List<DimensionType>();
+
+            foreach(DimensionType w in Dimensions)
+            { List_Dimensions.Add(w); }
+
+            return List_Dimensions;
+        }
+
+        public DimensionType GetDimensionTypeByName(Document doc, string name)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Dimensions = collector.OfClass(typeof(DimensionType)).ToElements();
+            List<DimensionType> List_Dimensions = new List<DimensionType>();
+
+            foreach (DimensionType w in Dimensions)
+            {
+                if(w.Name == name)
+                {
+                    List_Dimensions.Add(w);
+                }
+            }
+
+            if(List_Dimensions.Count > 1)
+            {
+                Message.Display("There are more then one dimension types with this name", WindowType.Warning);
+                return null;
+            }
+            else if( List_Dimensions.Count == 0)
+            {
+                Message.Display("There is no dimension type with this name", WindowType.Warning);
+                return null;
+            }
+            else
+            {
+                return List_Dimensions[0];
+            }
+            
         }
     }
 }

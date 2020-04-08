@@ -5,7 +5,7 @@
     /// <summary>
     /// The helper functions for converting length units in desired type.
     /// </summary>
-    public static class LengthUnitConverter
+    public class LengthUnitConverter
     {
         #region public methods
 
@@ -16,7 +16,7 @@
         /// <param name="type">The type of unit to convert to.</param>
         /// <param name="decimals">The decimal spaces precision.</param>
         /// <returns></returns>
-        public static double ConvertToMetric(double value, LengthUnitType type, int decimals)
+        public double ConvertToMetric(double value, LengthUnitType type, int decimals)
         {
             switch (type)
             {
@@ -35,6 +35,10 @@
             }
         }
 
+        public double ConvertToFeet(double value)
+        {
+            return value / 304.8;
+        }
         #endregion
     }
 }
