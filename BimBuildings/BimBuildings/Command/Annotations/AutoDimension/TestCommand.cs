@@ -78,6 +78,20 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 FamilyInstance selectionFamily = doc.GetElement(selectionReference) as FamilyInstance;
                 FamilySymbol familySymbol = selectionFamily.Symbol;
 
+                //Get Nested families
+                string nestedFamilyName = "31_MDK_GM_stelkozijn_lijn";
+                FamilyInstance nestedFamily = null;
+
+                ICollection<ElementId> subComponentIds = selectionFamily.GetSubComponentIds();
+                foreach(ElementId id in subComponentIds)
+                {
+                    if(doc.GetElement(id).Name == nestedFamilyName)
+                    {
+                        nestedFamily = doc.GetElement(id) as FamilyInstance;
+                    }
+                }
+
+                //Get DimensionType
                 DimensionType dimType = collector.GetDimensionTypeByName(doc, "Test");
 
                 // Checks if selection isn't empty
@@ -120,6 +134,11 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { referencesLR.Append(e); }
+
+                ReferenceArray referencesLRstelkozijn = new ReferenceArray();
+
+                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
+                { referencesLRstelkozijn.Append(e); }
                 
                 // Transaction for creating the dimensions
                 using (Transaction t = new Transaction(doc))
@@ -133,15 +152,20 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                     //Create endpoints for line creation
                     XYZ hoogtemaatvoering = GetDistance(locationpoint, dir, MDK_breedte);
-                    XYZ lengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
+                    XYZ lengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(1000));
+                    XYZ stelkozijnlengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
 
                     //Create line for dimension
                     Line lineLR = Line.CreateBound(lengtemaatvoering, lengtemaatvoering + dir * 100);
                     Line lineTB = Line.CreateBound(hoogtemaatvoering, hoogtemaatvoering + dirTB * 100);
+                    Line lineLRstelkozijn = Line.CreateBound(stelkozijnlengtemaatvoering, stelkozijnlengtemaatvoering + dir * 100);
 
                     //Create dimension
                     doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
                     doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
+                    doc.Create.NewDimension(doc.ActiveView, lineLRstelkozijn, referencesLRstelkozijn, dimType);
+
+                    //TaskDialog.Show("Info", sb.ToString());
 
                     t.Commit();
                 }

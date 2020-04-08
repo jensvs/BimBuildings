@@ -26,6 +26,9 @@
         /// <exception cref="System.NotImplementedException"></exception>
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            //LengthConverter
+            LengthUnitConverter converter = new LengthUnitConverter();
+
             // Application context.
             var uidoc = commandData.Application.ActiveUIDocument;
             var doc = uidoc.Document;
@@ -122,7 +125,7 @@
                 // Convert units to metric.
                 // Revit by default uses imperial units.
                 if (userInfo.Thickness)
-                    msg.Append(" " + LengthUnitConverter.ConvertToMetric(layer.Width, userInfo.UnitType, userInfo.Decimals).ToString());
+                    msg.Append(" " + converter.ConvertToMetric(layer.Width, userInfo.UnitType, userInfo.Decimals).ToString());
             }
 
             // Create Text Note options.
