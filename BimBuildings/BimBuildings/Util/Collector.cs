@@ -131,8 +131,12 @@ namespace BimBuildings.Util
             List<DimensionType> List_Dimensions = new List<DimensionType>();
 
             foreach(DimensionType w in Dimensions)
-            { List_Dimensions.Add(w); }
-
+            {
+                if(w.FamilyName.Contains("Linear"))
+                {
+                    List_Dimensions.Add(w);
+                }
+            }
             return List_Dimensions;
         }
 
@@ -144,27 +148,13 @@ namespace BimBuildings.Util
 
             foreach (DimensionType w in Dimensions)
             {
-                if(w.Name == name)
+                if (w.Name == name && w.FamilyName.Contains("Linear"))
                 {
                     List_Dimensions.Add(w);
+                    return List_Dimensions[0];
                 }
             }
-
-            if(List_Dimensions.Count > 1)
-            {
-                Message.Display("There are more then one dimension types with this name", WindowType.Warning);
-                return null;
-            }
-            else if( List_Dimensions.Count == 0)
-            {
-                Message.Display("There is no dimension type with this name", WindowType.Warning);
-                return null;
-            }
-            else
-            {
-                return List_Dimensions[0];
-            }
-            
+            return List_Dimensions[0];
         }
     }
 }

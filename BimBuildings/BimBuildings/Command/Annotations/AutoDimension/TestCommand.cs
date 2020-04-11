@@ -78,7 +78,14 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 FamilyInstance selectionFamily = doc.GetElement(selectionReference) as FamilyInstance;
                 FamilySymbol familySymbol = selectionFamily.Symbol;
 
-                //Get Nested families
+                // Checks if selection isn't empty
+                if (selectionFamily == null)
+                {
+                    Message.Display("You haven't selected a valid element.\nPlease selected another element.", WindowType.Error);
+                    return Result.Cancelled;
+                }
+
+                //Get Nested family
                 string nestedFamilyName = "31_MDK_GM_stelkozijn_lijn";
                 FamilyInstance nestedFamily = null;
 
@@ -91,14 +98,16 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     }
                 }
 
-                //Get DimensionType
-                DimensionType dimType = collector.GetDimensionTypeByName(doc, "Test");
-
-                // Checks if selection isn't empty
-                if (selectionFamily == null)
+                //Checks if selection has nested family with specified name
+                if(nestedFamily == null)
                 {
+                    Message.Display("There isn't a nested family in the element with the specified name.", WindowType.Error);
                     return Result.Cancelled;
                 }
+
+                //Get DimensionType
+                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
+                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
 
                 // Options
                 Options options = new Options();
@@ -113,32 +122,36 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 double MDK_offset_vooraanzicht = selectionFamily.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
 
                 // Get direction of Dimensions
-                XYZ dir = activeView.RightDirection;
-                XYZ dirTB = new XYZ(0, 0, 1);
+                XYZ widthDirection = activeView.RightDirection;
+                XYZ heigthDirection = new XYZ(0, 0, 1);
 
                 // Get locationpoint of selected element
                 LocationPoint location = selectionFamily.Location as LocationPoint;
                 XYZ locationpoint = location.Point;
 
                 // Get references which refer to the reference planes in the family
-                ReferenceArray referencesTB = new ReferenceArray();
+                ReferenceArray genericModelHeightref = new ReferenceArray();
+                ReferenceArray genericModelWidthref = new ReferenceArray();
+                ReferenceArray nestedFamilyHeightref = new ReferenceArray();
+                ReferenceArray nestedFamilyWidthref = new ReferenceArray();
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
-                { referencesTB.Append(e); }
+                { genericModelHeightref.Append(e); }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                { referencesTB.Append(e); }
-
-
-                ReferenceArray referencesLR = new ReferenceArray();
+                { genericModelHeightref.Append(e); }
 
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
-                { referencesLR.Append(e); }
-
-                ReferenceArray referencesLRstelkozijn = new ReferenceArray();
+                { genericModelWidthref.Append(e); }
 
                 foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
-                { referencesLRstelkozijn.Append(e); }
+                { nestedFamilyWidthref.Append(e); }
+
+                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Top))
+                { nestedFamilyHeightref.Append(e); }
+
+                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                { nestedFamilyHeightref.Append(e); }
                 
                 // Transaction for creating the dimensions
                 using (Transaction t = new Transaction(doc))
@@ -151,21 +164,25 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     activeView.SketchPlane = sketchPlane;
 
                     //Create endpoints for line creation
-                    XYZ hoogtemaatvoering = GetDistance(locationpoint, dir, MDK_breedte);
-                    XYZ lengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(1000));
-                    XYZ stelkozijnlengtemaatvoering = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
+                    XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 1000);
+                    XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(1000));
+                    XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 500);
+                    XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
 
                     //Create line for dimension
-                    Line lineLR = Line.CreateBound(lengtemaatvoering, lengtemaatvoering + dir * 100);
-                    Line lineTB = Line.CreateBound(hoogtemaatvoering, hoogtemaatvoering + dirTB * 100);
-                    Line lineLRstelkozijn = Line.CreateBound(stelkozijnlengtemaatvoering, stelkozijnlengtemaatvoering + dir * 100);
+                    Line genericModelHeightLine = Line.CreateBound(genericModelHeight, genericModelHeight + heigthDirection * 100);
+                    Line genericModelWidthLine = Line.CreateBound(genericModelWidth, genericModelWidth + widthDirection * 100);
+                    Line nestedFamilyHeightLine = Line.CreateBound(nestedFamilyHeight, nestedFamilyHeight + heigthDirection * 100);
+                    Line nestedFamilyWidthLine = Line.CreateBound(nestedFamilyWidth, nestedFamilyWidth + widthDirection * 100);
 
                     //Create dimension
-                    doc.Create.NewDimension(doc.ActiveView, lineLR, referencesLR, dimType);
-                    doc.Create.NewDimension(doc.ActiveView, lineTB, referencesTB, dimType);
-                    doc.Create.NewDimension(doc.ActiveView, lineLRstelkozijn, referencesLRstelkozijn, dimType);
+                    doc.Create.NewDimension(doc.ActiveView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
+                    doc.Create.NewDimension(doc.ActiveView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
+                    doc.Create.NewDimension(doc.ActiveView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
+                    doc.Create.NewDimension(doc.ActiveView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
 
-                    //TaskDialog.Show("Info", sb.ToString());
+                    //sb.Append(genericModelDimension.LookupParameter("DimensionShape").AsString());
+                    TaskDialog.Show("Info", sb.ToString());
 
                     t.Commit();
                 }
@@ -173,17 +190,16 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             return Result.Succeeded;
         }
 
-        public XYZ GetDistance(XYZ locationpoint, XYZ dir, double width)
+        public XYZ GetDistance(XYZ locationpoint, XYZ dir, double width, double distance)
         {
             LengthUnitConverter converter = new LengthUnitConverter();
 
             XYZ point = XYZ.Zero;
-            const int maatlijn = 500;
-            double distance = (width + converter.ConvertToFeet(maatlijn));
+            double totaldistance = (width + converter.ConvertToFeet(distance));
 
             if(dir.X == -1 || dir.X == 1)
             {
-                point = new XYZ(locationpoint.X + dir.X * distance,
+                point = new XYZ(locationpoint.X + dir.X * totaldistance,
                         locationpoint.Y,
                         locationpoint.Z);
                 return point;
@@ -191,7 +207,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             else if(dir.Y == -1 || dir.Y == 1)
             {
                 point = new XYZ(locationpoint.X,
-                        locationpoint.Y + dir.Y * distance,
+                        locationpoint.Y + dir.Y * totaldistance,
                         locationpoint.Z);
                 return point;
             }
@@ -206,8 +222,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 {
                     //+X, +Y
                     radians = degrees * (Math.PI / 180);
-                    x = Math.Sin(radians) * distance;
-                    y = Math.Cos(radians) * distance;
+                    x = Math.Sin(radians) * totaldistance;
+                    y = Math.Cos(radians) * totaldistance;
 
                     point = new XYZ(locationpoint.X + x, locationpoint.Y + y, locationpoint.Z);
                     return point;
@@ -217,8 +233,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     //+X, -Y
                     degrees = degrees - 90;
                     radians = degrees * (Math.PI / 180);
-                    x = Math.Cos(radians) * distance;
-                    y = Math.Sin(radians) * distance;
+                    x = Math.Cos(radians) * totaldistance;
+                    y = Math.Sin(radians) * totaldistance;
 
                     point = new XYZ(locationpoint.X + x, locationpoint.Y - y, locationpoint.Z);
                     return point;
@@ -228,8 +244,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     //-X, +Y
                     degrees = degrees + 90;
                     radians = degrees * (Math.PI / 180);
-                    x = Math.Cos(radians) * distance;
-                    y = Math.Sin(radians) * distance;
+                    x = Math.Cos(radians) * totaldistance;
+                    y = Math.Sin(radians) * totaldistance;
 
                     point = new XYZ(locationpoint.X - x, locationpoint.Y + y, locationpoint.Z);
                     return point;
@@ -239,8 +255,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     //-X, -Y
                     degrees = degrees + 180;
                     radians = degrees * (Math.PI / 180);
-                    x = Math.Sin(radians) * distance;
-                    y = Math.Cos(radians) * distance;
+                    x = Math.Sin(radians) * totaldistance;
+                    y = Math.Cos(radians) * totaldistance;
 
                     point = new XYZ(locationpoint.X - x, locationpoint.Y - y, locationpoint.Z);
                     return point;

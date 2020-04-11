@@ -22,7 +22,10 @@ namespace BimBuildings.Command
             var collector = new Collector();
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(collector.GetDimensionTypeByName(doc, "Test").Name);
+            foreach(DimensionType a in collector.GetDimensionTypes(doc))
+            {
+                sb.Append(a.Name + "\n");
+            }
             TaskDialog.Show("Title", sb.ToString());
 
             return Result.Succeeded;
