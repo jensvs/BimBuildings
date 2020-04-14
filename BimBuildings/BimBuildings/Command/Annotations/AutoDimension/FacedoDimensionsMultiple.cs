@@ -208,7 +208,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #endregion
 
                 #region//Select elements
-                List<Element> genericModelInViewList = collector.GetGenericModels(doc);
+                List<Element> genericModelInViewList = collector.GetGenericModels(doc, sectionView.Id);
                 List<Element> List_GenericModelsInView = new List<Element>();
                 FamilyInstance familyInstanceInView = null;
 
@@ -302,7 +302,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     Line locationLine = locationCurve.Curve as Line;
                     XYZ dir = locationLine.Direction.Normalize(); ;
                     #endregion
-
+                    
                     #region//Check if generic model is in same direction as view
                     double genericModelAngle = Math.Round(Math.Atan2(dir.Y, dir.X) * (180 / Math.PI), 5);
                     double activeViewAngle = Math.Round(Math.Atan2(widthDirection.Y, widthDirection.X) * (180 / Math.PI), 5);
