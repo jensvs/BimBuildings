@@ -14,7 +14,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
-    class TestCommand : IExternalCommand
+    class FacedoDimensions : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -58,7 +58,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     canCreateDimensionInView = true;
                     break;
                 case ViewType.Section:
-                    canCreateDimensionInView = false;
+                    canCreateDimensionInView = true;
                     break;
             }
 
@@ -70,7 +70,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             }
 
             //Check if activeView is an Elevation
-            if(activeView.ViewType == ViewType.Elevation)
+            if(canCreateDimensionInView)
             {
                 // Ask user to select one generic model.
                 var selectionReference = uidoc.Selection.PickObject(ObjectType.Element, new SelectionFilterByCategory("Generic Models"), "Select one generic model.");
@@ -86,34 +86,79 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 }
 
                 //Get Nested family
-                string nestedFamilyName = "31_MDK_GM_stelkozijn_lijn";
-                FamilyInstance nestedFamily = null;
+                string nestedFamilyName1 = "31_MDK_GM_stelkozijn_lijn";
+                FamilyInstance nestedFamily1 = null;
 
-                ICollection<ElementId> subComponentIds = selectionFamily.GetSubComponentIds();
-                foreach(ElementId id in subComponentIds)
+                ICollection<ElementId> subComponentIds1 = selectionFamily.GetSubComponentIds();
+                foreach(ElementId id in subComponentIds1)
                 {
-                    if(doc.GetElement(id).Name == nestedFamilyName)
+                    if(doc.GetElement(id).Name == nestedFamilyName1)
                     {
-                        nestedFamily = doc.GetElement(id) as FamilyInstance;
+                        nestedFamily1 = doc.GetElement(id) as FamilyInstance;
                     }
                 }
 
+                //Get Nested family
+                string nestedFamilyName2 = "Profiel_1";
+                FamilyInstance nestedFamily2 = null;
+
+                List<double> nestedFamilyOriginZ = new List<double>();
+                List<FamilyInstance> nestedFamilies = new List<FamilyInstance>();
+
+                FamilyInstance familyContainer = null;
+                LocationCurve curveContainer = null;
+                Line lineContainer = null;
+
+                ICollection<ElementId> subComponentIds2 = selectionFamily.GetSubComponentIds();
+                foreach(ElementId id in subComponentIds2)
+                {
+                    if(doc.GetElement(id).Name == nestedFamilyName2)
+                    {
+                        nestedFamilies.Add(doc.GetElement(id) as FamilyInstance);
+                        familyContainer = doc.GetElement(id) as FamilyInstance;
+                        curveContainer = familyContainer.Location as LocationCurve;
+                        lineContainer = curveContainer.Curve as Line;
+                        nestedFamilyOriginZ.Add(lineContainer.Origin.Z);
+                    }
+                }
+
+                double minValue = int.MaxValue;
+                int minIndex;
+                int index = -1;
+
+                foreach(double num in nestedFamilyOriginZ)
+                {
+                    index++;
+                    if(num <= minValue)
+                    {
+                        minValue = num;
+                        minIndex = index;
+                    }
+                }
+
+                nestedFamily2 = nestedFamilies[index];
+
+                LocationCurve locationCurve = nestedFamily2.Location as LocationCurve;
+                Line locationLine = locationCurve.Curve as Line;
+                XYZ dirLine = locationLine.Direction;
+
                 //Checks if selection has nested family with specified name
-                if(nestedFamily == null)
+                if (nestedFamily1 == null || nestedFamily2 == null)
                 {
                     Message.Display("There isn't a nested family in the element with the specified name.", WindowType.Error);
                     return Result.Cancelled;
                 }
+
 
                 //Get DimensionType
                 DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
                 DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
 
                 // Options
-                Options options = new Options();
-                options.IncludeNonVisibleObjects = true;
-                options.ComputeReferences = true;
-                options.View = doc.ActiveView;
+                //Options options = new Options();
+                //options.IncludeNonVisibleObjects = true;
+                //options.ComputeReferences = true;
+                //options.View = doc.ActiveView;
 
                 //Get type parameters of element
                 double MDK_breedte = familySymbol.LookupParameter("MDK_breedte").AsDouble();
@@ -124,6 +169,24 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 // Get direction of Dimensions
                 XYZ widthDirection = activeView.RightDirection;
                 XYZ heigthDirection = new XYZ(0, 0, 1);
+
+                //Check if Generic model is in same direction as view
+                double genericModelAngle = Math.Round(Math.Atan2(dirLine.Y, dirLine.X) * (180 / Math.PI));
+                double activeViewAngle = Math.Round(Math.Atan2(widthDirection.Y, widthDirection.X) * (180 / Math.PI));
+                if (genericModelAngle <= 0)
+                {
+                    genericModelAngle = genericModelAngle + 180;
+                }
+                else
+                {
+                    genericModelAngle = genericModelAngle - 180;
+                }
+
+                if(genericModelAngle != activeViewAngle)
+                {
+                    Message.Display("The generic model isn't parallel to the active view.", WindowType.Error);
+                    return Result.Cancelled;
+                }
 
                 // Get locationpoint of selected element
                 LocationPoint location = selectionFamily.Location as LocationPoint;
@@ -144,13 +207,13 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { genericModelWidthref.Append(e); }
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
+                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { nestedFamilyWidthref.Append(e); }
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Top))
+                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top))
                 { nestedFamilyHeightref.Append(e); }
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom))
                 { nestedFamilyHeightref.Append(e); }
                 
                 // Transaction for creating the dimensions
@@ -181,8 +244,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     doc.Create.NewDimension(doc.ActiveView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
                     doc.Create.NewDimension(doc.ActiveView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
 
-                    //sb.Append(genericModelDimension.LookupParameter("DimensionShape").AsString());
-                    TaskDialog.Show("Info", sb.ToString());
+                    //TaskDialog.Show("Info", sb.ToString());
 
                     t.Commit();
                 }

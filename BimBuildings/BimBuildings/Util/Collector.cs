@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.ApplicationServices;
-using System.Windows.Forms;
 
 namespace BimBuildings.Util
 {
@@ -155,6 +150,142 @@ namespace BimBuildings.Util
                 }
             }
             return List_Dimensions[0];
+        }
+
+        //*********************************************** Views ********************************************************************//
+        public List<View> GetViews(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Views = collector.OfClass(typeof(View)).WhereElementIsNotElementType().ToElements();
+            List<View> List_ViewsTemplates = new List<View>();
+            List<View> List_Views = new List<View>();
+
+            foreach(Element w in Views)
+            {
+                List_ViewsTemplates.Add((View)w);
+            }
+
+            foreach(View w in List_ViewsTemplates)
+            {
+                if(!w.IsTemplate)
+                {
+                    List_Views.Add(w);
+                }
+            }
+
+            return List_Views;
+        }
+
+        public List<View> GetViews(Document doc, ViewType viewType)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Views = collector.OfClass(typeof(View)).WhereElementIsNotElementType().ToElements();
+            List<View> List_ViewsTemplates = new List<View>();
+            List<View> List_Views = new List<View>();
+
+            foreach (Element w in Views)
+            {
+                List_ViewsTemplates.Add((View)w);
+            }
+
+            foreach (View w in List_ViewsTemplates)
+            {
+                if (!w.IsTemplate && w.ViewType == viewType)
+                {
+                    List_Views.Add(w);
+                }
+            }
+
+            return List_Views;
+        }
+
+        //*********************************************** ViewsTemplates ********************************************************************//
+        public List<View> GetViewTemplates(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Views = collector.OfClass(typeof(View)).WhereElementIsNotElementType().ToElements();
+            List<View> List_ViewsTemplates = new List<View>();
+            List<View> List_Views = new List<View>();
+
+            foreach (Element w in Views)
+            {
+                List_ViewsTemplates.Add((View)w);
+            }
+
+            foreach (View w in List_ViewsTemplates)
+            {
+                if (w.IsTemplate)
+                {
+                    List_Views.Add(w);
+                }
+            }
+            return List_Views;
+        }
+
+        public List<View> GetViewTemplates(Document doc, ViewType viewType)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Views = collector.OfClass(typeof(View)).WhereElementIsNotElementType().ToElements();
+            List<View> List_ViewsTemplates = new List<View>();
+            List<View> List_Views = new List<View>();
+
+            foreach (Element w in Views)
+            {
+                List_ViewsTemplates.Add((View)w);
+            }
+
+            foreach (View w in List_ViewsTemplates)
+            {
+                if (w.IsTemplate && w.ViewType == viewType)
+                {
+                    List_Views.Add(w);
+                }
+            }
+
+            return List_Views;
+        }
+
+        //*********************************************** ViewFamilyTypes ********************************************************************//
+        public List<ViewFamilyType> GetViewFamilyType(Document doc, ViewFamily viewFamily)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> viewFamilyTypes = collector.OfClass(typeof(ViewFamilyType)).ToElements();
+            List<ViewFamilyType> List_viewFamilyTypes = new List<ViewFamilyType>();
+
+            foreach(ViewFamilyType w in viewFamilyTypes)
+            {
+                if(w.ViewFamily == viewFamily)
+                {
+                    List_viewFamilyTypes.Add(w);
+                }
+            }
+
+            return List_viewFamilyTypes;
+        }
+
+        //*********************************************** Generic Models ********************************************************************//
+        public List<Element> GetGenericModels(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> GenericModels = collector.OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().ToElements();
+            List<Element> List_GenericModels = new List<Element>();
+
+            foreach (Element w in GenericModels)
+            { List_GenericModels.Add(w); }
+
+            return List_GenericModels;
+        }
+
+        public List<Element> GetGenericModels(Document doc, ElementId viewId)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc, viewId);
+            ICollection<Element> GenericModels = collector.OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().ToElements();
+            List<Element> List_GenericModels = new List<Element>();
+
+            foreach (Element w in GenericModels)
+            { List_GenericModels.Add(w); }
+
+            return List_GenericModels;
         }
     }
 }

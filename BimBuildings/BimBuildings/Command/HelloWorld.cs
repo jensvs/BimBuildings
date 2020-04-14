@@ -22,7 +22,7 @@ namespace BimBuildings.Command
             var collector = new Collector();
 
             StringBuilder sb = new StringBuilder();
-            foreach(DimensionType a in collector.GetDimensionTypes(doc))
+            foreach(ViewFamilyType a in collector.GetViewFamilyType(doc, ViewFamily.Elevation))
             {
                 sb.Append(a.Name + "\n");
             }

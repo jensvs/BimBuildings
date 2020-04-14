@@ -84,9 +84,8 @@
   <!-- Compile these file on build -->
   <ItemGroup>
     <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommand.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommandData.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\TestCommandData.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\TestCommand.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoDimensions.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoDimensionsMultiple.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -115,6 +114,7 @@
     <!-- Copy this file on build. But dont compile -->
     <Content Include="BimBuildings.addin" />
     <Content Include="Resources\Building.png" />
+    <Content Include="Resources\Dimensions.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Command\Annotations\TagWallLayers\TagWallLayersForm.resx">

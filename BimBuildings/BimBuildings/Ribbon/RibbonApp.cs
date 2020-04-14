@@ -43,7 +43,7 @@ namespace BimBuildings.Ribbon
             /*Panel Name*/                 "Annotations",
             /*Button Name*/                "Tag wall" + System.Environment.NewLine + "layers",
             /*Name of dll file*/           thisAssemblyPath,
-            /*Command*/                    "BimBuildings.TagWallLayersCommand", 
+            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.FacedoDimensions", 
             /*Image*/                      "Building.Png",
             /*ToolTip*/                    "Just an example of tooltip info you can include",
             /*ToolTipImage*/               "Building.Png",
@@ -51,10 +51,10 @@ namespace BimBuildings.Ribbon
 
             BimBuildings.CreateRibbonPanel(application,
             /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Test",
+            /*Panel Name*/                 "Dimensions",
             /*Button Name*/                "Auto" + System.Environment.NewLine + "Dimension",
             /*Name of dll file*/           thisAssemblyPath,
-            /*Command*/                    "BimBuildings.AutoDimensionCommand",
+            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.AutoDimensionCommand",
             /*Image*/                      "Building.Png",
             /*ToolTip*/                    "Just an example of tooltip info you can include",
             /*ToolTipImage*/               "Building.Png",
@@ -62,13 +62,13 @@ namespace BimBuildings.Ribbon
 
             BimBuildings.CreateRibbonPanel(application,
             /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Jens",
-            /*Button Name*/                "Jens" + System.Environment.NewLine + "Dimension",
+            /*Panel Name*/                 "Dimensions2",
+            /*Button Name*/                "Auto" + System.Environment.NewLine + "Dimension",
             /*Name of dll file*/           thisAssemblyPath,
-            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.TestCommand",
-            /*Image*/                      "Building.Png",
+            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.FacedoDimensionsMultiple",
+            /*Image*/                      "Dimensions.Png",
             /*ToolTip*/                    "Just an example of tooltip info you can include",
-            /*ToolTipImage*/               "Building.Png",
+            /*ToolTipImage*/               "Dimensions.Png",
             /*Website*/                    website);
 
             return Result.Succeeded;
