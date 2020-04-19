@@ -167,12 +167,12 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 {
                     tx.Start("Create Section");
 
-                    //section = ViewSection.CreateSection(doc, viewFamily.Id, boundingBox);
-                    //section.Name = "Merk_A";
-                    //section.Scale = 50;
-                    //section.CropBoxVisible = false;
-                    //section.get_Parameter(BuiltInParameter.SECTION_COARSER_SCALE_PULLDOWN_METRIC).Set(1);
-                    //section.LookupParameter("Subdiscipline").Set("LEGEND");
+                    section = ViewSection.CreateSection(doc, viewFamily.Id, boundingBox);
+                    section.Name = "Merk_A";
+                    section.Scale = 50;
+                    section.CropBoxVisible = false;
+                    section.get_Parameter(BuiltInParameter.SECTION_COARSER_SCALE_PULLDOWN_METRIC).Set(1);
+                    section.LookupParameter("Subdiscipline").Set("LEGEND");
 
                     tx.Commit();
                 }

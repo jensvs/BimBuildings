@@ -39,11 +39,11 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             }
 
             // Get access to current view.
-            var activeView = uidoc.ActiveView;
+            var sectionView = uidoc.ActiveView;
 
             // Check if Dimension can be created in currently active project view.
             bool canCreateDimensionInView = false;
-            switch (activeView.ViewType)
+            switch (sectionView.ViewType)
             {
                 case ViewType.FloorPlan:
                     canCreateDimensionInView = false;
@@ -75,32 +75,42 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 // Ask user to select one generic model.
                 var selectionReference = uidoc.Selection.PickObject(ObjectType.Element, new SelectionFilterByCategory("Generic Models"), "Select one generic model.");
                 Element selectionElement = doc.GetElement(selectionReference);
-                FamilyInstance selectionFamily = doc.GetElement(selectionReference) as FamilyInstance;
-                FamilySymbol familySymbol = selectionFamily.Symbol;
+                FamilyInstance genericModelFamily = doc.GetElement(selectionElement.Id) as FamilyInstance;
+                FamilySymbol genericModelSymbol = genericModelFamily.Symbol;
 
                 // Checks if selection isn't empty
-                if (selectionFamily == null)
+                if (genericModelFamily == null)
                 {
                     Message.Display("You haven't selected a valid element.\nPlease selected another element.", WindowType.Error);
                     return Result.Cancelled;
                 }
+                #region//Get DimensionType
+                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
+                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
+                #endregion
 
-                //Get Nested family
+                #region//Get directions for dimensions
+                XYZ widthDirection = sectionView.RightDirection.Normalize();
+                XYZ heigthDirection = new XYZ(0, 0, 1);
+                #endregion
+
+                #region//Get nested family 1
                 string nestedFamilyName1 = "31_MDK_GM_stelkozijn_lijn";
                 FamilyInstance nestedFamily1 = null;
 
-                ICollection<ElementId> subComponentIds1 = selectionFamily.GetSubComponentIds();
-                foreach(ElementId id in subComponentIds1)
+                ICollection<ElementId> subComponentIds1 = genericModelFamily.GetSubComponentIds();
+                foreach (ElementId id in subComponentIds1)
                 {
-                    if(doc.GetElement(id).Name == nestedFamilyName1)
+                    if (doc.GetElement(id).Name == nestedFamilyName1)
                     {
                         nestedFamily1 = doc.GetElement(id) as FamilyInstance;
                     }
                 }
+                #endregion
 
-                //Get Nested family
-                string nestedFamilyName2 = "Profiel_1";
+                #region//Get nested family 2
                 FamilyInstance nestedFamily2 = null;
+                string nestedFamilyName2 = "Profiel_1";
 
                 List<double> nestedFamilyOriginZ = new List<double>();
                 List<FamilyInstance> nestedFamilies = new List<FamilyInstance>();
@@ -109,10 +119,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 LocationCurve curveContainer = null;
                 Line lineContainer = null;
 
-                ICollection<ElementId> subComponentIds2 = selectionFamily.GetSubComponentIds();
-                foreach(ElementId id in subComponentIds2)
+                ICollection<ElementId> subComponentIds2 = genericModelFamily.GetSubComponentIds();
+                foreach (ElementId id in subComponentIds2)
                 {
-                    if(doc.GetElement(id).Name == nestedFamilyName2)
+                    if (doc.GetElement(id).Name == nestedFamilyName2)
                     {
                         nestedFamilies.Add(doc.GetElement(id) as FamilyInstance);
                         familyContainer = doc.GetElement(id) as FamilyInstance;
@@ -126,10 +136,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 int minIndex;
                 int index = -1;
 
-                foreach(double num in nestedFamilyOriginZ)
+                foreach (double num in nestedFamilyOriginZ)
                 {
                     index++;
-                    if(num <= minValue)
+                    if (num <= minValue)
                     {
                         minValue = num;
                         minIndex = index;
@@ -138,41 +148,32 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 nestedFamily2 = nestedFamilies[index];
 
-                LocationCurve locationCurve = nestedFamily2.Location as LocationCurve;
-                Line locationLine = locationCurve.Curve as Line;
-                XYZ dirLine = locationLine.Direction;
-
-                //Checks if selection has nested family with specified name
-                if (nestedFamily1 == null || nestedFamily2 == null)
+                if (nestedFamily2 == null)
                 {
                     Message.Display("There isn't a nested family in the element with the specified name.", WindowType.Error);
                     return Result.Cancelled;
                 }
+                #endregion
 
+                #region//Get type parameters of element
+                double MDK_breedte = genericModelSymbol.LookupParameter("MDK_breedte").AsDouble();
+                string MDK_merk = genericModelSymbol.LookupParameter("MDK_merk").AsString();
+                #endregion
 
-                //Get DimensionType
-                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
-                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
+                #region//Get instance parameters of element
+                double MDK_offset_vooraanzicht = genericModelFamily.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
+                double MDK_hoogte = genericModelFamily.LookupParameter("MDK_hoogte").AsDouble();
+                #endregion
 
-                // Options
-                //Options options = new Options();
-                //options.IncludeNonVisibleObjects = true;
-                //options.ComputeReferences = true;
-                //options.View = doc.ActiveView;
+                #region//Get direction of family
+                LocationCurve locationCurve = nestedFamily2.Location as LocationCurve;
+                Line locationLine = locationCurve.Curve as Line;
+                XYZ dir = locationLine.Direction.Normalize(); ;
+                #endregion
 
-                //Get type parameters of element
-                double MDK_breedte = familySymbol.LookupParameter("MDK_breedte").AsDouble();
-
-                //Get instance parameters of element
-                double MDK_offset_vooraanzicht = selectionFamily.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
-
-                // Get direction of Dimensions
-                XYZ widthDirection = activeView.RightDirection;
-                XYZ heigthDirection = new XYZ(0, 0, 1);
-
-                //Check if Generic model is in same direction as view
-                double genericModelAngle = Math.Round(Math.Atan2(dirLine.Y, dirLine.X) * (180 / Math.PI));
-                double activeViewAngle = Math.Round(Math.Atan2(widthDirection.Y, widthDirection.X) * (180 / Math.PI));
+                #region//Check if generic model is in same direction as view
+                double genericModelAngle = Math.Round(Math.Atan2(dir.Y, dir.X) * (180 / Math.PI), 5);
+                double activeViewAngle = Math.Round(Math.Atan2(widthDirection.Y, widthDirection.X) * (180 / Math.PI), 5);
                 if (genericModelAngle <= 0)
                 {
                     genericModelAngle = genericModelAngle + 180;
@@ -182,29 +183,48 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     genericModelAngle = genericModelAngle - 180;
                 }
 
-                if(genericModelAngle != activeViewAngle)
+                if (genericModelAngle != activeViewAngle)
                 {
                     Message.Display("The generic model isn't parallel to the active view.", WindowType.Error);
                     return Result.Cancelled;
                 }
+                #endregion
 
-                // Get locationpoint of selected element
-                LocationPoint location = selectionFamily.Location as LocationPoint;
+                #region//Get locationpoint of selected element
+                LocationPoint location = genericModelFamily.Location as LocationPoint;
                 XYZ locationpoint = location.Point;
+                #endregion
 
-                // Get references which refer to the reference planes in the family
+                #region//Create endpoints for line creation
+                XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 1000);
+                XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(1000));
+                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 500);
+                XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(500));
+                XYZ textNoteLevelOrigin = locationpoint - widthDirection * converter.ConvertToFeet(500) + heigthDirection * converter.ConvertToFeet(200);
+                XYZ textNoteHeaderOrigin = locationpoint - heigthDirection * converter.ConvertToFeet(200);
+                #endregion
+
+                #region//Create line for dimension
+                Line genericModelHeightLine = Line.CreateBound(genericModelHeight, genericModelHeight + heigthDirection * 100);
+                Line genericModelWidthLine = Line.CreateBound(genericModelWidth, genericModelWidth + widthDirection * 100);
+                Line nestedFamilyHeightLine = Line.CreateBound(nestedFamilyHeight, nestedFamilyHeight + heigthDirection * 100);
+                Line nestedFamilyWidthLine = Line.CreateBound(nestedFamilyWidth, nestedFamilyWidth + widthDirection * 100);
+                Line levelLine = Line.CreateBound(locationpoint - widthDirection * converter.ConvertToFeet(500), locationpoint + widthDirection * (MDK_breedte + converter.ConvertToFeet(1000)));
+                #endregion
+
+                #region// Get references which refer to the reference planes in the family
                 ReferenceArray genericModelHeightref = new ReferenceArray();
                 ReferenceArray genericModelWidthref = new ReferenceArray();
                 ReferenceArray nestedFamilyHeightref = new ReferenceArray();
                 ReferenceArray nestedFamilyWidthref = new ReferenceArray();
 
-                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Top))
+                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 { genericModelHeightref.Append(e); }
 
-                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
                 { genericModelHeightref.Append(e); }
 
-                foreach (var e in selectionFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
+                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { genericModelWidthref.Append(e); }
 
                 foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.StrongReference))
@@ -215,39 +235,49 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom))
                 { nestedFamilyHeightref.Append(e); }
-                
-                // Transaction for creating the dimensions
-                using (Transaction t = new Transaction(doc))
+                #endregion
+
+                #region//Textnote Options
+                TextNoteOptions textNoteLevelOptions = new TextNoteOptions();
+                textNoteLevelOptions.HorizontalAlignment = HorizontalTextAlignment.Left;
+                textNoteLevelOptions.TypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
+                #endregion
+
+                #region//Create Dimensions
+                using (Transaction tx = new Transaction(doc))
                 {
-                    t.Start("dimension");
+                    tx.Start("Create Dimensions");
 
-                    //Create and set workplane to place dimensions on
-                    Plane plane = Plane.CreateByNormalAndOrigin(activeView.ViewDirection, activeView.Origin);
+                    #region//Create and set workplane to place dimensions on
+                    Plane plane = Plane.CreateByNormalAndOrigin(sectionView.ViewDirection, sectionView.Origin);
                     SketchPlane sketchPlane = SketchPlane.Create(doc, plane);
-                    activeView.SketchPlane = sketchPlane;
+                    sectionView.SketchPlane = sketchPlane;
+                    #endregion
 
-                    //Create endpoints for line creation
-                    XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 1000);
-                    XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(1000));
-                    XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 500);
-                    XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(500));
+                    #region//Create Level Line
+                    DetailCurve levelDetailLine = doc.Create.NewDetailCurve(sectionView, levelLine);
+                    #endregion
 
-                    //Create line for dimension
-                    Line genericModelHeightLine = Line.CreateBound(genericModelHeight, genericModelHeight + heigthDirection * 100);
-                    Line genericModelWidthLine = Line.CreateBound(genericModelWidth, genericModelWidth + widthDirection * 100);
-                    Line nestedFamilyHeightLine = Line.CreateBound(nestedFamilyHeight, nestedFamilyHeight + heigthDirection * 100);
-                    Line nestedFamilyWidthLine = Line.CreateBound(nestedFamilyWidth, nestedFamilyWidth + widthDirection * 100);
+                    #region//Create Textnotes
+                    TextNote textNoteLevel = TextNote.Create(doc, sectionView.Id, textNoteLevelOrigin, "+vlp", textNoteLevelOptions);
+                    TextNote textNoteHeader = TextNote.Create(doc, sectionView.Id, textNoteHeaderOrigin, MDK_merk, textNoteLevelOptions);
+                    #endregion
 
-                    //Create dimension
-                    doc.Create.NewDimension(doc.ActiveView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
-                    doc.Create.NewDimension(doc.ActiveView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
-                    doc.Create.NewDimension(doc.ActiveView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
-                    doc.Create.NewDimension(doc.ActiveView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
+                    if (MDK_offset_vooraanzicht > 0)
+                    {
+                        genericModelHeightref.Append(levelDetailLine.GeometryCurve.Reference);
+                    }
+  
+                    #region//Create Dimensions
+                    doc.Create.NewDimension(sectionView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
+                    doc.Create.NewDimension(sectionView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
+                    doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
+                    doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
+                    #endregion
 
-                    //TaskDialog.Show("Info", sb.ToString());
-
-                    t.Commit();
+                    tx.Commit();
                 }
+                #endregion
             }
             return Result.Succeeded;
         }

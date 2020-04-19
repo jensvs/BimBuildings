@@ -27,10 +27,14 @@ namespace BimBuildings.Ribbon
             Util.Ribbon BimBuildings = new Util.Ribbon();
             BimBuildings.CreateRibbonTab(application, tabName);
 
+            RibbonPanel test = BimBuildings.CreateRibbonPanel(application, tabName, "Test");
+            RibbonPanel dimensions = BimBuildings.CreateRibbonPanel(application, tabName, "Dimensions");
+
             BimBuildings.CreateRibbonPanel(application,
             /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Hide",
-            /*Button Name*/                "Hide" + System.Environment.NewLine + "Level",
+            /*Panel Name*/                 test,
+            /*Data name*/                  "CmdData",
+            /*Button Name*/                "Test",
             /*Name of dll file*/           thisAssemblyPath,
             /*Command*/                    "BimBuildings.Command.HelloWorld",
             /*Image*/                      "Building.Png",
@@ -40,30 +44,21 @@ namespace BimBuildings.Ribbon
 
             BimBuildings.CreateRibbonPanel(application,
             /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Annotations",
-            /*Button Name*/                "Tag wall" + System.Environment.NewLine + "layers",
+            /*Panel Name*/                 dimensions,
+            /*Data name*/                  "CmdData",
+            /*Button Name*/                "Single",
             /*Name of dll file*/           thisAssemblyPath,
-            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.FacedoDimensions", 
-            /*Image*/                      "Building.Png",
+            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.FacedoDimensions",
+            /*Image*/                      "Dimensions.Png",
             /*ToolTip*/                    "Just an example of tooltip info you can include",
             /*ToolTipImage*/               "Building.Png",
             /*Website*/                    website);
 
             BimBuildings.CreateRibbonPanel(application,
             /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Dimensions",
-            /*Button Name*/                "Auto" + System.Environment.NewLine + "Dimension",
-            /*Name of dll file*/           thisAssemblyPath,
-            /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.AutoDimensionCommand",
-            /*Image*/                      "Building.Png",
-            /*ToolTip*/                    "Just an example of tooltip info you can include",
-            /*ToolTipImage*/               "Building.Png",
-            /*Website*/                    website);
-
-            BimBuildings.CreateRibbonPanel(application,
-            /*Tab Name*/                   tabName,
-            /*Panel Name*/                 "Dimensions2",
-            /*Button Name*/                "Auto" + System.Environment.NewLine + "Dimension",
+            /*Panel Name*/                 dimensions,
+            /*Data name*/                  "CmdData1",
+            /*Button Name*/                "Multiple",
             /*Name of dll file*/           thisAssemblyPath,
             /*Command*/                    "BimBuildings.Command.Annotations.AutoDimension.FacedoDimensionsMultiple",
             /*Image*/                      "Dimensions.Png",
