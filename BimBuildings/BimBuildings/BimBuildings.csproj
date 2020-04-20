@@ -86,6 +86,7 @@
     <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommand.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoDimensions.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoDimensionsMultiple.cs" />
+    <Compile Include="Command\Annotations\RSP\RenameSharedParameters.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>
     </Compile>

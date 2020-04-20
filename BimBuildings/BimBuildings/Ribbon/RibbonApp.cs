@@ -66,6 +66,18 @@ namespace BimBuildings.Ribbon
             /*ToolTipImage*/               "Dimensions.Png",
             /*Website*/                    website);
 
+            BimBuildings.CreateRibbonPanel(application,
+            /*Tab Name*/                   tabName,
+            /*Panel Name*/                 test,
+            /*Data name*/                  "CmdData2",
+            /*Button Name*/                "Rename\nShared",
+            /*Name of dll file*/           thisAssemblyPath,
+            /*Command*/                    "BimBuildings.Command.Annotations.RSP.RenameSharedParameters",
+            /*Image*/                      "Building.Png",
+            /*ToolTip*/                    "Just an example of tooltip info you can include",
+            /*ToolTipImage*/               "Dimensions.Png",
+            /*Website*/                    website);
+
             return Result.Succeeded;
         }
 
