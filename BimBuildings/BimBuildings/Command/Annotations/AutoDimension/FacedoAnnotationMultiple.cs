@@ -10,7 +10,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
-    class FacedoDimensionsMultiple : IExternalCommand
+    class FacedoAnnotationMultiple : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -198,8 +198,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             foreach (View sectionView in List_SectionViews)
             {
                 #region//Get DimensionType
-                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
-                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
+                DimensionType genericModelDimension = collector.GetLinearDimensionTypeByName(doc, "hoofdmaatvoering");
+                DimensionType nestedFamilyDimension = collector.GetLinearDimensionTypeByName(doc, "stelkozijn");
                 #endregion
 
                 #region//Get directions for dimensions

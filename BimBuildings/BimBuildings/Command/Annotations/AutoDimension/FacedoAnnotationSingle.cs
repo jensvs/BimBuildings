@@ -14,7 +14,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
-    class FacedoDimensions : IExternalCommand
+    class FacedoAnnotationSingle : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -85,8 +85,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     return Result.Cancelled;
                 }
                 #region//Get DimensionType
-                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
-                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
+                DimensionType genericModelDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Black");
+                DimensionType nestedFamilyDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Stelkozijn");
+
+                DimensionType nestedFamilySpotElevation = collector.GetSpotElevationTypeByName(doc, "2.0mm - Stelkozijn (b.k) vlp");
                 #endregion
 
                 #region//Get directions for dimensions
@@ -165,6 +167,44 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 double MDK_hoogte = genericModelFamily.LookupParameter("MDK_hoogte").AsDouble();
                 #endregion
 
+                #region//Get count
+                List<Element> genericModelList = collector.GetGenericModels(doc);
+                List<Element> List_GenericModels = new List<Element>();
+                List<Element> List_GenericModelsDraw = new List<Element>();
+                List<Element> List_GenericModelsMirror = new List<Element>();
+                FamilyInstance familyInstance = null;
+                FamilySymbol familySymbol = null;
+
+                foreach (Element genericModel in genericModelList)
+                {
+                    familyInstance = doc.GetElement(genericModel.Id) as FamilyInstance;
+                    if (familyInstance.SuperComponent == null)
+                    {
+                        familySymbol = familyInstance.Symbol;
+                        string mark = familySymbol.LookupParameter("MDK_merk").AsString();
+
+                        if (mark == MDK_merk)
+                        {
+                            if (familyInstance.Mirrored)
+                            {
+                                List_GenericModelsMirror.Add(genericModel);
+                                List_GenericModels.Add(genericModel);
+                            }
+                            else
+                            {
+                                List_GenericModelsDraw.Add(genericModel);
+                                List_GenericModels.Add(genericModel);
+                            }
+                        }
+                    }
+                }
+
+                int counttotal = List_GenericModels.Count;
+                int countdraw = List_GenericModelsDraw.Count;
+                int countmirror = List_GenericModelsMirror.Count;
+
+                #endregion
+
                 #region//Get direction of family
                 LocationCurve locationCurve = nestedFamily2.Location as LocationCurve;
                 Line locationLine = locationCurve.Curve as Line;
@@ -198,10 +238,12 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #region//Create endpoints for line creation
                 XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 1000);
                 XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(1000));
-                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 500);
-                XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(500));
+                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, 0, -150);
+                XYZ nestedFamilyHeight2 = GetDistance(locationpoint, heigthDirection, MDK_hoogte - 18, -150);
+                XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(150));
                 XYZ textNoteLevelOrigin = locationpoint - widthDirection * converter.ConvertToFeet(500) + heigthDirection * converter.ConvertToFeet(200);
                 XYZ textNoteHeaderOrigin = locationpoint - heigthDirection * converter.ConvertToFeet(200);
+                XYZ textNoteInfoOrigin = locationpoint - heigthDirection * converter.ConvertToFeet(500);
                 #endregion
 
                 #region//Create line for dimension
@@ -215,8 +257,10 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #region// Get references which refer to the reference planes in the family
                 ReferenceArray genericModelHeightref = new ReferenceArray();
                 ReferenceArray genericModelWidthref = new ReferenceArray();
-                ReferenceArray nestedFamilyHeightref = new ReferenceArray();
                 ReferenceArray nestedFamilyWidthref = new ReferenceArray();
+
+                Reference nestedFamilyTop = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top).First();
+                Reference nestedFamilyBottom = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom).First();
 
                 foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 { genericModelHeightref.Append(e); }
@@ -229,24 +273,33 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { nestedFamilyWidthref.Append(e); }
-
-                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top))
-                { nestedFamilyHeightref.Append(e); }
-
-                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom))
-                { nestedFamilyHeightref.Append(e); }
                 #endregion
 
                 #region//Textnote Options
                 TextNoteOptions textNoteLevelOptions = new TextNoteOptions();
                 textNoteLevelOptions.HorizontalAlignment = HorizontalTextAlignment.Left;
-                textNoteLevelOptions.TypeId = doc.GetDefaultElementTypeId(ElementTypeGroup.TextNoteType);
+                textNoteLevelOptions.TypeId = collector.GetTextNoteTypeIdByName(doc, "2.5mm - Black");
+
+                TextNoteOptions textNoteHeaderOptions = new TextNoteOptions();
+                textNoteHeaderOptions.HorizontalAlignment = HorizontalTextAlignment.Left;
+                textNoteHeaderOptions.TypeId = collector.GetTextNoteTypeIdByName(doc, "3.5mm - Orange");
+
+                TextNoteOptions textNoteInfoOptions = new TextNoteOptions();
+                textNoteInfoOptions.HorizontalAlignment = HorizontalTextAlignment.Left;
+                textNoteInfoOptions.TypeId = collector.GetTextNoteTypeIdByName(doc, "2.5mm - Black");
                 #endregion
 
-                #region//Create Dimensions
+                #region//Info
+                string info =   "Afmetingen:\t" + converter.ConvertToMetric(MDK_breedte, LengthUnitType.milimeter,0).ToString() + " x " + converter.ConvertToMetric(MDK_hoogte, LengthUnitType.milimeter, 0).ToString() + " mm\n" +
+                                "Getekend:\t" + countdraw + "\n" +
+                                "Gespiegeld:\t" + countmirror + "\n" +
+                                "Totaal aantal:\t" + counttotal + "\n";
+                #endregion
+
+                #region//Create Annotations
                 using (Transaction tx = new Transaction(doc))
                 {
-                    tx.Start("Create Dimensions");
+                    tx.Start("Create Annotations");
 
                     #region//Create and set workplane to place dimensions on
                     Plane plane = Plane.CreateByNormalAndOrigin(sectionView.ViewDirection, sectionView.Origin);
@@ -260,7 +313,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                     #region//Create Textnotes
                     TextNote textNoteLevel = TextNote.Create(doc, sectionView.Id, textNoteLevelOrigin, "+vlp", textNoteLevelOptions);
-                    TextNote textNoteHeader = TextNote.Create(doc, sectionView.Id, textNoteHeaderOrigin, MDK_merk, textNoteLevelOptions);
+                    TextNote textNoteHeader = TextNote.Create(doc, sectionView.Id, textNoteHeaderOrigin, MDK_merk, textNoteHeaderOptions);
+                    TextNote textNoteInfo = TextNote.Create(doc, sectionView.Id, textNoteInfoOrigin, info, textNoteInfoOptions);
                     #endregion
 
                     if (MDK_offset_vooraanzicht > 0)
@@ -271,8 +325,9 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     #region//Create Dimensions
                     doc.Create.NewDimension(sectionView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
                     doc.Create.NewDimension(sectionView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
-                    doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
+                    //doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
                     doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
+                    doc.Create.NewSpotElevation(sectionView, nestedFamilyTop, nestedFamilyHeight, nestedFamilyHeight2, nestedFamilyHeight2, nestedFamilyHeight, true);
                     #endregion
 
                     tx.Commit();

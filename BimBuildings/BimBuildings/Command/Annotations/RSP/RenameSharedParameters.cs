@@ -40,9 +40,9 @@ namespace BimBuildings.Command.Annotations.RSP
                         }
                         else
                         {
-                            fman.Replace
+                            //fman.Replace
                                 
-                                RenameParameter(p, newname);
+                                //RenameParameter(p, newname);
                         }
                            
                         
