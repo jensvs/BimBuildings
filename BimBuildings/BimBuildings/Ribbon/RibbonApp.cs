@@ -31,6 +31,14 @@ namespace BimBuildings.Ribbon
 
             #region//Create RibbonPanel Test
             RibbonPanel test = application.CreateRibbonPanel(tabName, "Test");
+
+            #region//Create PushButtonData
+            PushButtonData HelloWorld = new PushButtonData("Hello World", "Hello\nWorld", thisAssemblyPath, "BimBuildings.Command.HelloWorld");
+            #endregion
+
+            #region//Create Buttons
+            test.AddItem(HelloWorld);
+            #endregion
             #endregion
 
             #region//Create RibbonPanel Dimensions

@@ -33,19 +33,16 @@ namespace BimBuildings.Command.Annotations.RSP
             DefinitionFile sharedParameterFile = app.OpenSharedParameterFile();
 
             //Shared parameter group settings
-            DefinitionGroup defGroup = sharedParameterFile.Groups.Create("Facedo");
+            DefinitionGroups defGroups = sharedParameterFile.Groups;
 
-            //Shared parameter settings
-            string newname = null;
-            ParameterType pType = ParameterType.Area;
-            ExternalDefinitionCreationOptions options = new ExternalDefinitionCreationOptions(newname, pType);
+            sb.Append(defGroups.Size + "\n");
+
+            DefinitionGroup defGroup = defGroups.get_Item("Facedo");
+
 
             FamilyManager fman = doc.FamilyManager;
 
-
-
-
-            using(Transaction tx = new Transaction(doc, "test"))
+            using (Transaction tx = new Transaction(doc, "to family parameter"))
             {
                 tx.Start();
 
@@ -53,33 +50,51 @@ namespace BimBuildings.Command.Annotations.RSP
                 {
                     if (p.Definition.Name.Contains("MDK"))
                     {
-
-                        newname = p.Definition.Name.Replace("MDK", "FAC");
-
-                        pType = p.Definition.ParameterType;
-
                         try
                         {
+                            fman.ReplaceParameter(p, p.Definition.Name.Replace("MDK", "TEMP"), p.Definition.ParameterGroup, p.IsInstance);
 
-                            foreach (DefinitionGroup dg in sharedParameterFile.Groups)
-                            {
-                                if (dg.Name == "Facedo")
-                                {
-                                    ExternalDefinition externalDefinition = dg.Definitions.Create(options) as ExternalDefinition;
-
-                                    sb.Append(externalDefinition.ToString());
-
-                                }
-                            }
+                            sb.Append(p.Definition.Name + "\n");
                         }
                         catch { }
                     }
                 }
 
-                TaskDialog.Show("test123", sb.ToString());
+                tx.Commit();
+            }
+
+            sb.Append("\n");
+
+            using (Transaction tx = new Transaction(doc, "to shared parameter"))
+            { 
+                tx.Start();
+
+                foreach (FamilyParameter p in fman.Parameters)
+                {
+                    if (p.Definition.Name.Contains("TEMP"))
+                    {
+                        try
+                        {
+                            string newname = p.Definition.Name.Replace("TEMP", "FAC");
+
+                            ExternalDefinitionCreationOptions opt = new ExternalDefinitionCreationOptions(newname, p.Definition.ParameterType);
+
+                            defGroup.Definitions.Create(opt);
+
+                            ExternalDefinition newExtDef = defGroup.Definitions.get_Item(newname) as ExternalDefinition;
+
+                            fman.ReplaceParameter(p, newname, p.Definition.ParameterGroup, p.IsInstance);
+
+                            sb.Append(p.Definition.Name + "\n");
+                        }
+                        catch { }
+                    }
+                }
 
                 tx.Commit();
             }
+            
+            TaskDialog.Show("Final Dialog", sb.ToString());
 
             return Result.Succeeded;
         }

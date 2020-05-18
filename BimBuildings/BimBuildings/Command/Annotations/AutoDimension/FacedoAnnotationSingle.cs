@@ -108,6 +108,9 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                         nestedFamily1 = doc.GetElement(id) as FamilyInstance;
                     }
                 }
+
+                
+
                 #endregion
 
                 #region//Get nested family 2
@@ -208,7 +211,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #region//Get direction of family
                 LocationCurve locationCurve = nestedFamily2.Location as LocationCurve;
                 Line locationLine = locationCurve.Curve as Line;
-                XYZ dir = locationLine.Direction.Normalize(); ;
+                XYZ dir = locationLine.Direction.Normalize();
                 #endregion
 
                 #region//Check if generic model is in same direction as view
@@ -236,9 +239,9 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #endregion
 
                 #region//Create endpoints for line creation
-                XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 1000);
-                XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(1000));
-                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, 0, -150);
+                XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 300);
+                XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(300));
+                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 150);
                 XYZ nestedFamilyHeight2 = GetDistance(locationpoint, heigthDirection, MDK_hoogte - 18, -150);
                 XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(150));
                 XYZ textNoteLevelOrigin = locationpoint - widthDirection * converter.ConvertToFeet(500) + heigthDirection * converter.ConvertToFeet(200);
@@ -258,9 +261,26 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 ReferenceArray genericModelHeightref = new ReferenceArray();
                 ReferenceArray genericModelWidthref = new ReferenceArray();
                 ReferenceArray nestedFamilyWidthref = new ReferenceArray();
+                ReferenceArray nestedFamilyHeightref = new ReferenceArray();
 
                 Reference nestedFamilyTop = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top).First();
                 Reference nestedFamilyBottom = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom).First();
+
+                //nestedFamily1.GetGeometryObjectFromReference()
+
+                foreach(Reference reference in genericModelFamily.GetReferences(FamilyInstanceReferenceType.WeakReference))
+                {
+                    string name = genericModelFamily.GetReferenceName(reference);
+                    if(name.Contains("center_tussenregel"))
+                    {
+                        genericModelHeightref.Append(reference);
+                    }
+
+                    if (name.Contains("center_tussenstijl"))
+                    {
+                        genericModelWidthref.Append(reference);
+                    }
+                }
 
                 foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 { genericModelHeightref.Append(e); }
@@ -273,6 +293,12 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
                 foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.StrongReference))
                 { nestedFamilyWidthref.Append(e); }
+
+                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top))
+                { nestedFamilyHeightref.Append(e); }
+
+                foreach (var e in nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom))
+                { nestedFamilyHeightref.Append(e); }
                 #endregion
 
                 #region//Textnote Options
@@ -321,13 +347,15 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     {
                         genericModelHeightref.Append(levelDetailLine.GeometryCurve.Reference);
                     }
-  
+
+                    nestedFamilyHeightref.Append(levelDetailLine.GeometryCurve.Reference);
+
                     #region//Create Dimensions
                     doc.Create.NewDimension(sectionView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
                     doc.Create.NewDimension(sectionView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
-                    //doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
+                    doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
                     doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
-                    doc.Create.NewSpotElevation(sectionView, nestedFamilyTop, nestedFamilyHeight, nestedFamilyHeight2, nestedFamilyHeight2, nestedFamilyHeight, true);
+                    //doc.Create.NewSpotElevation(sectionView, nestedFamilyTop, nestedFamilyHeight, nestedFamilyHeight2, nestedFamilyHeight2, nestedFamilyHeight, true);
                     #endregion
 
                     tx.Commit();

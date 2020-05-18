@@ -306,7 +306,7 @@ namespace BimBuildings.Util
             return List_GenericModels;
         }
 
-        //*********************************************** Views ********************************************************************//
+        //*********************************************** TextnoteType ********************************************************************//
         public ElementId GetTextNoteTypeIdByName(Document doc, string name)
         {
             ElementId textId = null;
@@ -333,6 +333,19 @@ namespace BimBuildings.Util
             }
 
             return textId;
+        }
+
+        //*********************************************** ModelLines ********************************************************************//
+        public List<Element> GetModelLines(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Lines = collector.OfCategory(BuiltInCategory.OST_Lines).WhereElementIsNotElementType().ToElements();
+            List<Element> List_Lines = new List<Element>();
+
+            foreach (Element w in Lines)
+            { List_Lines.Add(w); }
+
+            return List_Lines;
         }
     }
 }
