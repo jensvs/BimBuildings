@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.ApplicationServices;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using System;
@@ -19,10 +20,30 @@ namespace BimBuildings.Command.Annotations.RSP
             StringBuilder sb = new StringBuilder();
 
             // Application context.
+            UIApplication uiapp = commandData.Application;
+            Application app = uiapp.Application;
             var uidoc = commandData.Application.ActiveUIDocument;
             var doc = uidoc.Document;
 
+            //Shared parameter file
+            string oldlFile = app.SharedParametersFilename;
+            string newFile = @"C:\RenameSharedParameters\FAC_shared_parameters.txt";
+
+            app.SharedParametersFilename = newFile;
+            DefinitionFile sharedParameterFile = app.OpenSharedParameterFile();
+
+            //Shared parameter group settings
+            DefinitionGroup defGroup = sharedParameterFile.Groups.Create("Facedo");
+
+            //Shared parameter settings
+            string newname = null;
+            ParameterType pType = ParameterType.Area;
+            ExternalDefinitionCreationOptions options = new ExternalDefinitionCreationOptions(newname, pType);
+
             FamilyManager fman = doc.FamilyManager;
+
+
+
 
             using(Transaction tx = new Transaction(doc, "test"))
             {
@@ -32,23 +53,27 @@ namespace BimBuildings.Command.Annotations.RSP
                 {
                     if (p.Definition.Name.Contains("MDK"))
                     {
-                        string newname = p.Definition.Name.Replace("MDK", "FAC");
 
-                        if (p.IsShared)
+                        newname = p.Definition.Name.Replace("MDK", "FAC");
+
+                        pType = p.Definition.ParameterType;
+
+                        try
                         {
 
+                            foreach (DefinitionGroup dg in sharedParameterFile.Groups)
+                            {
+                                if (dg.Name == "Facedo")
+                                {
+                                    ExternalDefinition externalDefinition = dg.Definitions.Create(options) as ExternalDefinition;
+
+                                    sb.Append(externalDefinition.ToString());
+
+                                }
+                            }
                         }
-                        else
-                        {
-                            //fman.Replace
-                                
-                                //RenameParameter(p, newname);
-                        }
-                           
-                        
-                        sb.Append(newname + "\n");
+                        catch { }
                     }
-                    
                 }
 
                 TaskDialog.Show("test123", sb.ToString());
