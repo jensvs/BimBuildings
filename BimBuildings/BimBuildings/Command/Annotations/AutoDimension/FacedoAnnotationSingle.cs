@@ -266,7 +266,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 Reference nestedFamilyTop = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top).First();
                 Reference nestedFamilyBottom = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom).First();
 
-                //nestedFamily1.GetGeometryObjectFromReference()
+                Line dirGM = genericModelFamily.GetGeometryObjectFromReference(genericModelFamily.GetReferences(FamilyInstanceReferenceType.Bottom).First()) as Line;
+                sb.Append(dirGM.Direction + "\n" + sectionView.RightDirection);
 
                 foreach(Reference reference in genericModelFamily.GetReferences(FamilyInstanceReferenceType.WeakReference))
                 {
@@ -356,6 +357,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
                     doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
                     //doc.Create.NewSpotElevation(sectionView, nestedFamilyTop, nestedFamilyHeight, nestedFamilyHeight2, nestedFamilyHeight2, nestedFamilyHeight, true);
+
+                    TaskDialog.Show("fff", sb.ToString());
                     #endregion
 
                     tx.Commit();
