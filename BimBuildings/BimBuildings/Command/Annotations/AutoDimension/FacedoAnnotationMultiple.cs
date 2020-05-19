@@ -10,7 +10,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
-    class FacedoDimensionsMultiple : IExternalCommand
+    class FacedoAnnotationMultiple : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -140,8 +140,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 double thickness = converter.ConvertToFeet(500);
                 double offset = converter.ConvertToFeet(500);
 
-                XYZ min = new XYZ(-width, minZ - offset, -offset);
-                XYZ max = new XYZ(width, maxZ + offset, +offset);
+                XYZ min = new XYZ(-width - converter.ConvertToFeet(1000), minZ - offset, - offset);
+                XYZ max = new XYZ(width, maxZ + offset, + offset);
 
                 XYZ midpoint = lineStart + 0.5 * lineDifference;
                 XYZ up = XYZ.BasisZ;
@@ -169,7 +169,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     tx.Start("Create Section");
 
                     ViewSection section = ViewSection.CreateSection(doc, viewFamily.Id, boundingBox);
-                    section.Name = MDK_merk;
+                    section.Name = genericModel.Name;
                     section.Scale = 50;
                     section.CropBoxVisible = false;
                     section.get_Parameter(BuiltInParameter.SECTION_COARSER_SCALE_PULLDOWN_METRIC).Set(1);
@@ -187,7 +187,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
 
             foreach (View sectionView in sectionViewList)
             {
-                if (sectionView.Name.Contains("Merk"))
+                if (sectionView.Name.Contains("Kozijn"))
                 {
                     List_SectionViews.Add(sectionView);
                 }
@@ -198,8 +198,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             foreach (View sectionView in List_SectionViews)
             {
                 #region//Get DimensionType
-                DimensionType genericModelDimension = collector.GetDimensionTypeByName(doc, "hoofdmaatvoering");
-                DimensionType nestedFamilyDimension = collector.GetDimensionTypeByName(doc, "stelkozijn");
+                DimensionType genericModelDimension = collector.GetLinearDimensionTypeByName(doc, "hoofdmaatvoering");
+                DimensionType nestedFamilyDimension = collector.GetLinearDimensionTypeByName(doc, "stelkozijn");
                 #endregion
 
                 #region//Get directions for dimensions

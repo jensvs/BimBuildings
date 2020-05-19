@@ -83,9 +83,12 @@
   </ItemGroup>
   <!-- Compile these file on build -->
   <ItemGroup>
-    <Compile Include="Command\Annotations\AutoDimension\AutoDimensionCommand.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\FacedoDimensions.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\FacedoDimensionsMultiple.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationDelete.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationDeleteAll.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSettings.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSingle.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple.cs" />
+    <Compile Include="Command\Annotations\RSP\RenameSharedParameters.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -114,8 +117,11 @@
   <ItemGroup>
     <!-- Copy this file on build. But dont compile -->
     <Content Include="BimBuildings.addin" />
-    <Content Include="Resources\Building.png" />
-    <Content Include="Resources\Dimensions.png" />
+    <Content Include="Resources\Building 32x32.png" />
+    <Content Include="Resources\Delete 16x16.png" />
+    <Content Include="Resources\Dimensions 16x16.png" />
+    <Content Include="Resources\Dimensions 32x32.png" />
+    <Content Include="Resources\Settings 16x16.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Command\Annotations\TagWallLayers\TagWallLayersForm.resx">
@@ -144,8 +150,7 @@ if exist "$(ProgramData)\Autodesk\REVIT\Addins\2019" xcopy "$(ProjectDir)$(Outpu
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe" sign /fd SHA256  /f "C:\Users\jenss\source\repos\BimBuildings\BimBuildings.pfx" /p ifcexporter "$(TargetPath)"
-if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
+    <PostBuildEvent>if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)$(OutputPath)*.dll" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" xcopy /I /Y "$(ProjectDir)$(OutputPath)..\..\Resources"  "$(AppData)\Autodesk\REVIT\Addins\2019\Resources"
 </PostBuildEvent>

@@ -2,6 +2,7 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.ApplicationServices;
+using System.Linq;
 
 namespace BimBuildings.Util
 {
@@ -135,7 +136,7 @@ namespace BimBuildings.Util
             return List_Dimensions;
         }
 
-        public DimensionType GetDimensionTypeByName(Document doc, string name)
+        public DimensionType GetLinearDimensionTypeByName(Document doc, string name)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             ICollection<Element> Dimensions = collector.OfClass(typeof(DimensionType)).ToElements();
@@ -144,6 +145,23 @@ namespace BimBuildings.Util
             foreach (DimensionType w in Dimensions)
             {
                 if (w.Name == name && w.FamilyName.Contains("Linear"))
+                {
+                    List_Dimensions.Add(w);
+                    return List_Dimensions[0];
+                }
+            }
+            return List_Dimensions[0];
+        }
+
+        public DimensionType GetSpotElevationTypeByName(Document doc, string name)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Dimensions = collector.OfClass(typeof(DimensionType)).ToElements();
+            List<DimensionType> List_Dimensions = new List<DimensionType>();
+
+            foreach (DimensionType w in Dimensions)
+            {
+                if (w.Name == name && w.FamilyName.Contains("Spot"))
                 {
                     List_Dimensions.Add(w);
                     return List_Dimensions[0];
@@ -286,6 +304,48 @@ namespace BimBuildings.Util
             { List_GenericModels.Add(w); }
 
             return List_GenericModels;
+        }
+
+        //*********************************************** TextnoteType ********************************************************************//
+        public ElementId GetTextNoteTypeIdByName(Document doc, string name)
+        {
+            ElementId textId = null;
+
+            // Collect all text note types
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<ElementId> textNoteTypes
+                = collector.OfClass(typeof(TextNoteType))
+                  .ToElementIds()
+                  .ToList();
+
+            // Get text note types as elements
+            List<Element> elements = new List<Element>();
+            foreach (ElementId noteId in textNoteTypes)
+            {
+                elements.Add(doc.GetElement(noteId));
+            }
+
+            // Get the text note type element ID by name
+            foreach (Element e in elements)
+            {
+                if (e.Name == name)
+                    textId = e.Id;
+            }
+
+            return textId;
+        }
+
+        //*********************************************** ModelLines ********************************************************************//
+        public List<Element> GetModelLines(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Lines = collector.OfCategory(BuiltInCategory.OST_Lines).WhereElementIsNotElementType().ToElements();
+            List<Element> List_Lines = new List<Element>();
+
+            foreach (Element w in Lines)
+            { List_Lines.Add(w); }
+
+            return List_Lines;
         }
     }
 }
