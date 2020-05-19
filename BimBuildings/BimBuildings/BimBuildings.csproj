@@ -108,6 +108,7 @@
     <Compile Include="Type\WindowType.cs" />
     <Compile Include="Type\LengthUnitType.cs" />
     <Compile Include="Util\Collector.cs" />
+    <Compile Include="Util\FailureHandler.cs" />
     <Compile Include="Util\LengthUnitConverter.cs" />
     <Compile Include="Util\SelectionFilterByCategory.cs" />
     <Compile Include="Util\Ribbon.cs" />

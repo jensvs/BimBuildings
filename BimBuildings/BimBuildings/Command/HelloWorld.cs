@@ -22,7 +22,7 @@ namespace BimBuildings.Command
             var collector = new Collector();
 
             StringBuilder sb = new StringBuilder();
-            foreach(Element a in collector.GetModelLines(doc))
+            foreach(Element a in collector.GetDetailLines(doc))
             {
                 sb.Append(a.Name + "\n");
             }

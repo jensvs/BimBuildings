@@ -347,5 +347,42 @@ namespace BimBuildings.Util
 
             return List_Lines;
         }
+
+        public List<Element> GetModelLines(Document doc, ElementId viewId)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc, viewId);
+            ICollection<Element> Lines = collector.OfCategory(BuiltInCategory.OST_Lines).WhereElementIsNotElementType().ToElements();
+            List<Element> List_Lines = new List<Element>();
+
+            foreach (Element w in Lines)
+            { List_Lines.Add(w); }
+
+            return List_Lines;
+        }
+
+        //*********************************************** DetailLines ********************************************************************//
+        public List<Element> GetDetailLines(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Lines = collector.OfClass(typeof(CurveElement)).WhereElementIsNotElementType().ToElements();
+            List<Element> List_Lines = new List<Element>();
+
+            foreach (Element w in Lines)
+            { List_Lines.Add(w); }
+
+            return List_Lines;
+        }
+
+        public List<Element> GetDetailLines(Document doc, ElementId viewId)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc, viewId);
+            ICollection<Element> Lines = collector.OfClass(typeof(DetailLine)).WhereElementIsNotElementType().ToElements();
+            List<Element> List_Lines = new List<Element>();
+
+            foreach (Element w in Lines)
+            { List_Lines.Add(w); }
+
+            return List_Lines;
+        }
     }
 }
