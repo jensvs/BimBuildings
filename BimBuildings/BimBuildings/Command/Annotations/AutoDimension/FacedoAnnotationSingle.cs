@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BimBuildings.Util;
+using Document = Autodesk.Revit.DB.Document;
 
 namespace BimBuildings.Command.Annotations.AutoDimension
 {
@@ -215,22 +216,15 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 #endregion
 
                 #region//Check if generic model is in same direction as view
-                double genericModelAngle = Math.Round(Math.Atan2(dir.Y, dir.X) * (180 / Math.PI), 5);
-                double activeViewAngle = Math.Round(Math.Atan2(widthDirection.Y, widthDirection.X) * (180 / Math.PI), 5);
-                if (genericModelAngle <= 0)
-                {
-                    genericModelAngle = genericModelAngle + 180;
-                }
-                else
-                {
-                    genericModelAngle = genericModelAngle - 180;
-                }
+                /*XYZ genericModelDir = GetReferenceDirection(genericModelFamily.GetReferences(FamilyInstanceReferenceType.CenterFrontBack).First(), doc);
 
-                if (genericModelAngle != activeViewAngle)
+                sb.Append(genericModelDir + "\n" + widthDirection);
+
+                if (genericModelDir.ToString() != widthDirection.ToString())
                 {
                     Message.Display("The generic model isn't parallel to the active view.", WindowType.Error);
                     return Result.Cancelled;
-                }
+                }*/
                 #endregion
 
                 #region//Get locationpoint of selected element
@@ -263,11 +257,8 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 ReferenceArray nestedFamilyWidthref = new ReferenceArray();
                 ReferenceArray nestedFamilyHeightref = new ReferenceArray();
 
-                Reference nestedFamilyTop = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top).First();
-                Reference nestedFamilyBottom = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom).First();
-
-                Line dirGM = genericModelFamily.GetGeometryObjectFromReference(genericModelFamily.GetReferences(FamilyInstanceReferenceType.Bottom).First()) as Line;
-                sb.Append(dirGM.Direction + "\n" + sectionView.RightDirection);
+                //Reference nestedFamilyTop = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Top).First();
+                //Reference nestedFamilyBottom = nestedFamily1.GetReferences(FamilyInstanceReferenceType.Bottom).First();
 
                 foreach(Reference reference in genericModelFamily.GetReferences(FamilyInstanceReferenceType.WeakReference))
                 {
@@ -358,7 +349,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
                     //doc.Create.NewSpotElevation(sectionView, nestedFamilyTop, nestedFamilyHeight, nestedFamilyHeight2, nestedFamilyHeight2, nestedFamilyHeight, true);
 
-                    TaskDialog.Show("fff", sb.ToString());
+                    //TaskDialog.Show("fff", sb.ToString());
                     #endregion
 
                     tx.Commit();
@@ -441,6 +432,50 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 }
                 return point;
             }
+        }
+
+        public XYZ GetReferenceDirection(Reference ref1, Document doc)
+        // returns the direction perpendicular to reference
+        // returns XYZ.Zero on error;
+        {
+            XYZ res = XYZ.Zero;
+            XYZ workPlaneNormal = doc.ActiveView.SketchPlane.GetPlane().Normal;
+            if (ref1.ElementId == ElementId.InvalidElementId) return res;
+            Element elem = doc.GetElement(ref1.ElementId);
+            if (elem == null) return res;
+            if (ref1.ElementReferenceType == ElementReferenceType.REFERENCE_TYPE_SURFACE || ref1.ElementReferenceType == ElementReferenceType.REFERENCE_TYPE_LINEAR)
+            {
+                // make a dimension to a point for direction
+
+                XYZ bEnd = new XYZ(10, 10, 10);
+                ReferenceArray refArr = new ReferenceArray();
+                refArr.Append(ref1);
+                Dimension dim = null;
+                using (Transaction t = new Transaction(doc, "test"))
+                {
+                    t.Start();
+                    using (SubTransaction st = new SubTransaction(doc))
+                    {
+                        st.Start();
+                        ReferencePlane refPlane = doc.Create.NewReferencePlane(XYZ.Zero, bEnd, bEnd.CrossProduct(XYZ.BasisZ).Normalize(), doc.ActiveView);
+                        ModelCurve mc = doc.Create.NewModelCurve(Line.CreateBound(XYZ.Zero, new XYZ(10, 10, 10)), SketchPlane.Create(doc, refPlane.Id));
+                        refArr.Append(mc.GeometryCurve.GetEndPointReference(0));
+                        dim = doc.Create.NewDimension(doc.ActiveView, Line.CreateBound(XYZ.Zero, new XYZ(10, 0, 0)), refArr);
+                        ElementTransformUtils.MoveElement(doc, dim.Id, new XYZ(0, 0.1, 0));
+                        st.Commit();
+                    }
+                    if (dim != null)
+                    {
+                        Curve cv = dim.Curve;
+                        cv.MakeBound(0, 1);
+                        XYZ pt1 = cv.GetEndPoint(0);
+                        XYZ pt2 = cv.GetEndPoint(1);
+                        res = pt2.Subtract(pt1).Normalize();
+                    }
+                    t.RollBack();
+                }
+            }
+            return res;
         }
     }
 }
