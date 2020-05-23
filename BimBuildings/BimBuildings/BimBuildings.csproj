@@ -85,9 +85,10 @@
   <ItemGroup>
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationDelete.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationDeleteAll.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSettings.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSingle.cs" />
-    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple.cs" />
+    <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple%28entire project%29.cs" />
     <Compile Include="Command\Annotations\RSP\RenameSharedParameters.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>

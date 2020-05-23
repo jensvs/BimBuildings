@@ -22,7 +22,7 @@ namespace BimBuildings.Command
             var collector = new Collector();
 
             StringBuilder sb = new StringBuilder();
-            foreach(Element a in collector.GetDetailLines(doc))
+            foreach(Element a in collector.GetGenericModels(doc, doc.ActiveView.Id))
             {
                 sb.Append(a.Name + "\n");
             }
