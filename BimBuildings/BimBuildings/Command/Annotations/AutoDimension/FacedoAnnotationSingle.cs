@@ -19,6 +19,7 @@ namespace BimBuildings.Command.Annotations.AutoDimension
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            #region//Utils
             //String Builder
             StringBuilder sb = new StringBuilder();
 
@@ -31,18 +32,21 @@ namespace BimBuildings.Command.Annotations.AutoDimension
             // Application context.
             var uidoc = commandData.Application.ActiveUIDocument;
             var doc = uidoc.Document;
+            #endregion
 
-            // Check if we are in the Revit project , not in family one.
+            #region//Check if we are in the Revit project , not in family one.
             if (doc.IsFamilyDocument)
             {
                 Message.Display("Can't use command in family document", WindowType.Warning);
                 return Result.Cancelled;
             }
+            #endregion
 
-            // Get access to current view.
+            #region//Get access to current view.
             var sectionView = uidoc.ActiveView;
+            #endregion
 
-            // Check if Dimension can be created in currently active project view.
+            #region//Check if Dimension can be created in currently active project view.
             bool canCreateDimensionInView = false;
             switch (sectionView.ViewType)
             {
@@ -62,83 +66,51 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     canCreateDimensionInView = true;
                     break;
             }
+            #endregion
 
-            // Check if Dimension can be created
+            #region//Check if Dimension can be created
             if (!canCreateDimensionInView)
             {
                 Message.Display("Dimension can't be created in the current view.", WindowType.Warning);
                 return Result.Cancelled;
             }
+            #endregion
 
-            //Check if activeView is an Elevation
-            if(canCreateDimensionInView)
+            #region//Check if activeView is a proper view
+            if (canCreateDimensionInView)
             {
-                // Ask user to select one generic model.
-                var selectionReference = uidoc.Selection.PickObject(ObjectType.Element, new SelectionFilterByCategory("Generic Models"), "Select one generic model.");
-                Element selectionElement = doc.GetElement(selectionReference);
-                FamilyInstance genericModelFamily = doc.GetElement(selectionElement.Id) as FamilyInstance;
-                FamilySymbol genericModelSymbol = genericModelFamily.Symbol;
-
-                // Checks if selection isn't empty
-                if (genericModelFamily == null)
+                #region//Ask user to select one generic model.
+                Reference selectionReference;
+                try
                 {
-                    Message.Display("You haven't selected a valid element.\nPlease selected another element.", WindowType.Error);
+                    selectionReference = uidoc.Selection.PickObject(ObjectType.Element, new SelectionFilterByCategory("Generic Models"), "Select one generic model.");
+                }
+                catch(Autodesk.Revit.Exceptions.OperationCanceledException)
+                {
                     return Result.Cancelled;
                 }
-                #region//Get DimensionType
-                DimensionType genericModelDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Black");
-                DimensionType nestedFamilyDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Stelkozijn");
-                DimensionType genericModelDimensionOrdinate = collector.GetLinearDimensionTypeByName(doc, "FAC - Ordinate - 2mm - Krukhoogte");
-                DimensionType nestedFamilyDimensionOrdinate = collector.GetLinearDimensionTypeByName(doc, "FAC - Ordinate - 2mm - Stelkozijn");
                 #endregion
+
+                #region//Get main window
+                Element mainWindow = doc.GetElement(selectionReference);
+                FamilyInstance mainWindowFamily = doc.GetElement(mainWindow.Id) as FamilyInstance;
+                FamilySymbol mainWindowSymbol = mainWindowFamily.Symbol;
 
                 #region//Get directions for dimensions
                 XYZ widthDirection = sectionView.RightDirection.Normalize();
                 XYZ heigthDirection = new XYZ(0, 0, 1);
                 #endregion
 
-                #region//Get nested family !!!MDK WORDT NOG VERVANGEN DOOR FAC KAN ERROR VEROORZAKEN
-                string nestedFamilyName = "31_MDK_GM_stelkozijn_lijn";
-                FamilyInstance nestedFamily = null;
-
-                ICollection<ElementId> subComponentIds1 = genericModelFamily.GetSubComponentIds();
-                foreach (ElementId id in subComponentIds1)
+                #region// Checks if selection isn't empty
+                if (mainWindowFamily == null)
                 {
-                    if (doc.GetElement(id).Name == nestedFamilyName)
-                    {
-                        nestedFamily = doc.GetElement(id) as FamilyInstance;
-                    }
+                    Message.Display("You haven't selected a valid element.\nPlease selected another element.", WindowType.Error);
+                    return Result.Cancelled;
                 }
-                #endregion
-
-                #region//Get nested family
-                nestedFamilyName = "31_FAC_GM_vak_vleugel";
-                List<FamilyInstance> nestedFamilyList = new List<FamilyInstance>();
-
-                ICollection<ElementId> subComponentIds2 = genericModelFamily.GetSubComponentIds();
-                foreach (ElementId id in subComponentIds2)
-                {
-                    FamilyInstance fInstance = doc.GetElement(id) as FamilyInstance;
-                    FamilySymbol fSymbol = fInstance.Symbol;
-
-                    if(fSymbol.FamilyName == nestedFamilyName)
-                    {
-                        nestedFamilyList.Add(doc.GetElement(id) as FamilyInstance);
-                    }
-                }
-
-                FamilyInstance nestedFamily2 = nestedFamilyList.First();
-                #endregion
-
-                #region//Get type parameters of element
-                double MDK_offset_vooraanzicht = genericModelSymbol.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
-                double MDK_hoogte = genericModelSymbol.LookupParameter("MDK_hoogte").AsDouble();
-                double MDK_breedte = genericModelSymbol.LookupParameter("MDK_breedte").AsDouble();
-                string MDK_merk = genericModelSymbol.LookupParameter("MDK_merk").AsString();
                 #endregion
 
                 #region//Check if generic model is in same direction as view
-                XYZ genericModelDir = GetReferenceDirection(genericModelFamily.GetReferences(FamilyInstanceReferenceType.CenterFrontBack).First(), doc);
+                XYZ genericModelDir = GetReferenceDirection(mainWindowFamily.GetReferences(FamilyInstanceReferenceType.CenterFrontBack).First(), doc);
 
                 if (genericModelDir.ToString() != widthDirection.ToString())
                 {
@@ -147,98 +119,231 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                 }
                 #endregion
 
+                #region//Get Type parameters
+                double MDK_offset_vooraanzicht = mainWindowSymbol.LookupParameter("MDK_offset_vooraanzicht").AsDouble();
+                double MDK_hoogte = mainWindowSymbol.LookupParameter("MDK_hoogte").AsDouble();
+                double MDK_breedte = mainWindowSymbol.LookupParameter("MDK_breedte").AsDouble();
+                string MDK_merk = mainWindowSymbol.LookupParameter("MDK_merk").AsString();
+                #endregion
+
                 #region//Get locationpoint of selected element
-                LocationPoint location = genericModelFamily.Location as LocationPoint;
-                XYZ locationpoint = location.Point;
+                LocationPoint mainWindowLocation = mainWindowFamily.Location as LocationPoint;
+                XYZ mainWindowLocationpoint = mainWindowLocation.Point;
                 #endregion
 
-                #region//Create endpoints for line creation
-                XYZ genericModelHeight = GetDistance(locationpoint, widthDirection, MDK_breedte, 150);
-                XYZ genericModelWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(150));
-                XYZ genericModelHeight2 = GetDistance(locationpoint, widthDirection, MDK_breedte, 300);
-                XYZ genericModelHeight3 = GetDistance(locationpoint, widthDirection, MDK_breedte, 450);
-                XYZ genericModelWidth2 = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(300));
-                XYZ nestedFamilyHeight = GetDistance(locationpoint, widthDirection, 0, -150);
-                XYZ nestedFamilyWidth = new XYZ(locationpoint.X, locationpoint.Y, locationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(150));
-                #endregion
+                #region//main window references
+                ReferenceArray mainWindowHeight1 = new ReferenceArray();
+                ReferenceArray mainWindowHeight2 = new ReferenceArray();
+                ReferenceArray mainWindowWidth1 = new ReferenceArray();
+                ReferenceArray mainWindowWidth2 = new ReferenceArray();
 
-                #region//Create line for dimension
-                Line genericModelHeightLine = Line.CreateBound(genericModelHeight, genericModelHeight + heigthDirection * 100);
-                Line genericModelWidthLine = Line.CreateBound(genericModelWidth, genericModelWidth + widthDirection * 100);
-                Line genericModelHeightLine2 = Line.CreateBound(genericModelHeight2, genericModelHeight2 + heigthDirection * 100);
-                Line genericModelHeightLine3 = Line.CreateBound(genericModelHeight3, genericModelHeight3 + heigthDirection * 100);
-                Line genericModelWidthLine2 = Line.CreateBound(genericModelWidth2, genericModelWidth2 + widthDirection * 100);
-                Line nestedFamilyHeightLine = Line.CreateBound(nestedFamilyHeight, nestedFamilyHeight + heigthDirection * 100);
-                Line nestedFamilyWidthLine = Line.CreateBound(nestedFamilyWidth, nestedFamilyWidth + widthDirection * 100);
-                #endregion
-
-                #region// Get references which refer to the reference planes in the family
-                ReferenceArray genericModelHeightref = new ReferenceArray();
-                ReferenceArray genericModelHeight2ref = new ReferenceArray();
-                ReferenceArray genericModelHeight3ref = new ReferenceArray();
-                ReferenceArray genericModelWidthref = new ReferenceArray();
-                ReferenceArray genericModelWidth2ref = new ReferenceArray();
-                ReferenceArray nestedFamilyWidthref = new ReferenceArray();
-                ReferenceArray nestedFamilyHeightref = new ReferenceArray();
-
-                foreach(Reference reference in genericModelFamily.GetReferences(FamilyInstanceReferenceType.WeakReference))
+                foreach (var e in mainWindowFamily.GetReferences(FamilyInstanceReferenceType.Top))
                 {
-                    string name = genericModelFamily.GetReferenceName(reference);
-                    if(name.Contains("center_tussenregel"))
+                    mainWindowHeight1.Append(e);
+                    mainWindowHeight2.Append(e);
+                }
+
+                foreach (var e in mainWindowFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
+                {
+                    mainWindowHeight1.Append(e);
+                    mainWindowHeight2.Append(e);
+                }
+
+                foreach (var e in mainWindowFamily.GetReferences(FamilyInstanceReferenceType.Left))
+                {
+                    mainWindowWidth1.Append(e);
+                    mainWindowWidth2.Append(e);
+                }
+
+                foreach (var e in mainWindowFamily.GetReferences(FamilyInstanceReferenceType.Right))
+                {
+                    mainWindowWidth1.Append(e);
+                    mainWindowWidth2.Append(e);
+                }
+
+                foreach (Reference reference in mainWindowFamily.GetReferences(FamilyInstanceReferenceType.WeakReference))
+                {
+                    string name = mainWindowFamily.GetReferenceName(reference);
+                    if (name.Contains("center_tussenregel"))
                     {
-                        genericModelHeightref.Append(reference);
+                        mainWindowHeight1.Append(reference);
                     }
 
                     if (name.Contains("center_tussenstijl"))
                     {
-                        genericModelWidthref.Append(reference);
+                        mainWindowWidth1.Append(reference);
                     }
                 }
+                #endregion
+                #endregion
 
-                foreach (Reference reference in nestedFamily2.GetReferences(FamilyInstanceReferenceType.WeakReference))
+                #region//Get DimensionType
+                DimensionType windowDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Black");
+                DimensionType windowFrameDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Diagonal - 2mm - Stelkozijn");
+                DimensionType doorHandleDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Ordinate - 2mm - Krukhoogte");
+                DimensionType windowFrameLevelDimension = collector.GetLinearDimensionTypeByName(doc, "FAC - Ordinate - 2mm - Stelkozijn");
+                #endregion
+
+                #region//Get base line
+                List<DetailLine> detailLines = collector.GetDetailLines(doc, sectionView.Id);
+                string lineStyle = "FAC_vloerpeil";
+                Line detailLine = null;
+
+                foreach (DetailLine dl in detailLines)
                 {
-                    string name = nestedFamily2.GetReferenceName(reference);
-                    if (name.Contains("krukhoogte_binnen"))
+                    if (dl.LineStyle.Name == lineStyle)
                     {
-                        genericModelHeight3ref.Append(reference);
+                        detailLine = dl.GeometryCurve as Line;
+                    }
+                    else
+                    {
+                        Message.Display("Can't find a DetailLine with the LineStyle, FAC_vloerpeil.", WindowType.Error);
+                        return Result.Cancelled;
+                    }
+                }
+                #endregion
+
+                #region//Get windowframe and window family!!!MDK WORDT NOG VERVANGEN DOOR FAC KAN ERROR VEROORZAKEN
+                ICollection<ElementId> subComponentIds = mainWindowFamily.GetSubComponentIds();
+
+                #region//Get windowframe family
+                string windowFrameName = "31_MDK_GM_stelkozijn_lijn";
+                FamilyInstance windowFrame = null;
+
+                foreach (ElementId id in subComponentIds)
+                {
+                    if (doc.GetElement(id).Name == windowFrameName)
+                    {
+                        windowFrame = doc.GetElement(id) as FamilyInstance;
                     }
                 }
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Top))
-                { genericModelHeightref.Append(e); }
+                #region//windowframe references
+                ReferenceArray windowframeWidth = new ReferenceArray();
+                ReferenceArray windowframeHeight1 = new ReferenceArray();
+                ReferenceArray windowframeHeight2 = new ReferenceArray();
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                { genericModelHeightref.Append(e); }
+                foreach (var e in windowFrame.GetReferences(FamilyInstanceReferenceType.Left))
+                {windowframeWidth.Append(e); }
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Left))
-                { genericModelWidthref.Append(e); }
+                foreach (var e in windowFrame.GetReferences(FamilyInstanceReferenceType.Right))
+                { windowframeWidth.Append(e); }
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Right))
-                { genericModelWidthref.Append(e); }
+                windowframeHeight2.Append(detailLine.Reference);
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Top))
-                { genericModelHeight2ref.Append(e); }
+                foreach (var e in windowFrame.GetReferences(FamilyInstanceReferenceType.Top))
+                {
+                    windowframeHeight1.Append(e);
+                    windowframeHeight2.Append(e);
+                }
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                { genericModelHeight2ref.Append(e); }
+                foreach (var e in windowFrame.GetReferences(FamilyInstanceReferenceType.Bottom))
+                {
+                    windowframeHeight1.Append(e);
+                    windowframeHeight2.Append(e);
+                }
+                #endregion
+                #endregion
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Left))
-                { genericModelWidth2ref.Append(e); }
+                #region//Get window family
+                string windowName = "31_FAC_GM_vak_vleugel";
+                FamilyInstance window = null;
+                List<FamilyInstance> nestedFamilyList = new List<FamilyInstance>();
 
-                foreach (var e in genericModelFamily.GetReferences(FamilyInstanceReferenceType.Right))
-                { genericModelWidth2ref.Append(e); }
+                foreach (ElementId id in subComponentIds)
+                {
+                    FamilyInstance fInstance = doc.GetElement(id) as FamilyInstance;
+                    FamilySymbol fSymbol = fInstance.Symbol;
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Left))
-                { nestedFamilyWidthref.Append(e); }
+                    if (fSymbol.FamilyName == windowName)
+                    {
+                        window = doc.GetElement(id) as FamilyInstance;
+                    }
+                }
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Right))
-                { nestedFamilyWidthref.Append(e); }
+                ReferenceArray doorHandleHeightLevel = new ReferenceArray();
+                ReferenceArray doorHandleHeight = new ReferenceArray();
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Top))
-                { nestedFamilyHeightref.Append(e); }
+                XYZ windowLocationPoint = null;
+                XYZ windowDimensionPoint1 = null;
 
-                foreach (var e in nestedFamily.GetReferences(FamilyInstanceReferenceType.Bottom))
-                { nestedFamilyHeightref.Append(e); }
+                Line windowDimension1 = null;
+
+                if (window != null)
+                {
+                    #region//Get locationpoint of window
+                    LocationPoint windowLocation = window.Location as LocationPoint;
+                    windowLocationPoint = windowLocation.Point;
+                    #endregion
+
+                    #region//Create endpoint for line creation
+                    windowDimensionPoint1 = GetDistance(windowLocationPoint, widthDirection, 0, -50);
+                    #endregion
+
+                    #region//Create line for dimension
+                    windowDimension1 = Line.CreateBound(windowDimensionPoint1, windowDimensionPoint1 + heigthDirection * 100);
+                    #endregion
+
+                    #region//window references
+                    doorHandleHeightLevel.Append(detailLine.Reference);
+
+                    foreach (Reference reference in window.GetReferences(FamilyInstanceReferenceType.Bottom))
+                    { doorHandleHeight.Append(reference); }
+
+                    foreach (Reference reference in window.GetReferences(FamilyInstanceReferenceType.WeakReference))
+                    {
+                        string name = window.GetReferenceName(reference);
+                        if (name.Contains("krukhoogte_binnen"))
+                        {
+                            doorHandleHeight.Append(reference);
+                            doorHandleHeightLevel.Append(reference);
+                        }
+                    }
+                    #endregion
+                }
+                #endregion
+                #endregion
+
+                #region//Create endpoints for line creation
+                XYZ RightDimensionPoint1 = GetDistance(mainWindowLocationpoint, widthDirection, MDK_breedte, 150);
+                XYZ RightDimensionPoint2 = GetDistance(mainWindowLocationpoint, widthDirection, MDK_breedte, 300);
+                XYZ RightDimensionPoint3 = GetDistance(mainWindowLocationpoint, widthDirection, MDK_breedte, 450);
+
+                XYZ BottomDimensionPoint1 = new XYZ(mainWindowLocationpoint.X, mainWindowLocationpoint.Y, mainWindowLocationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(150));
+                XYZ BottomDimensionPoint2 = new XYZ(mainWindowLocationpoint.X, mainWindowLocationpoint.Y, mainWindowLocationpoint.Z + MDK_offset_vooraanzicht - converter.ConvertToFeet(300));
+
+                XYZ LeftDimensionPoint1 = GetDistance(mainWindowLocationpoint, widthDirection, 0, -150);
+                XYZ LeftDimensionPoint2 = GetDistance(mainWindowLocationpoint, widthDirection, 0, -300);
+
+                XYZ TopDimensionPoint1 = new XYZ(mainWindowLocationpoint.X, mainWindowLocationpoint.Y, mainWindowLocationpoint.Z + MDK_offset_vooraanzicht + MDK_hoogte + converter.ConvertToFeet(150));
+                #endregion
+
+                #region//Create line for dimension
+                Line RightDimension1 = Line.CreateBound(RightDimensionPoint1, RightDimensionPoint1 + heigthDirection * 100);
+                Line RightDimension2 = Line.CreateBound(RightDimensionPoint2, RightDimensionPoint2 + heigthDirection * 100);
+                Line RightDimension3 = Line.CreateBound(RightDimensionPoint3, RightDimensionPoint3 + heigthDirection * 100);
+
+                Line BottomDimension1 = Line.CreateBound(BottomDimensionPoint1, BottomDimensionPoint1 + widthDirection * 100);
+                Line BottomDimension2 = Line.CreateBound(BottomDimensionPoint2, BottomDimensionPoint2 + widthDirection * 100);
+
+                Line LeftDimension1 = Line.CreateBound(LeftDimensionPoint1, LeftDimensionPoint1 + heigthDirection * 100);
+                Line LeftDimension2 = Line.CreateBound(LeftDimensionPoint2, LeftDimensionPoint2 + heigthDirection * 100);
+
+                Line TopDimension1 = Line.CreateBound(TopDimensionPoint1, TopDimensionPoint1 + widthDirection * 100);
+                #endregion
+
+                #region//Get selection filter
+                SelectionFilterElement filter = null;
+                List<SelectionFilterElement> filters = collector.GetSelectionFilter(doc);
+                string filtername = "Stelkozijn maatvoering";
+
+                foreach(SelectionFilterElement f in filters)
+                {
+                    if(f.Name == filtername)
+                    {
+                        filter = f;
+                    }
+                }
                 #endregion
 
                 #region//Create Annotations
@@ -253,29 +358,83 @@ namespace BimBuildings.Command.Annotations.AutoDimension
                     #endregion
 
                     #region//Create Dimensions
-                    doc.Create.NewDimension(sectionView, genericModelHeightLine, genericModelHeightref, genericModelDimension);
-                    doc.Create.NewDimension(sectionView, genericModelWidthLine, genericModelWidthref, genericModelDimension);
-                    doc.Create.NewDimension(sectionView, nestedFamilyHeightLine, nestedFamilyHeightref, nestedFamilyDimension);
-                    doc.Create.NewDimension(sectionView, nestedFamilyWidthLine, nestedFamilyWidthref, nestedFamilyDimension);
+                    doc.Create.NewDimension(sectionView, RightDimension1, mainWindowHeight1, windowDimension);
+                    doc.Create.NewDimension(sectionView, BottomDimension1, mainWindowWidth1, windowDimension);
 
-                    if(genericModelHeightref.Size != 2)
-                    {
-                        doc.Create.NewDimension(sectionView, genericModelHeightLine2, genericModelHeight2ref, genericModelDimension);
-                    }
+                    Dimension windowFrameHeight1 = doc.Create.NewDimension(sectionView, LeftDimension1, windowframeHeight1, windowFrameDimension);
+                    Dimension windowFrameHeight2 = doc.Create.NewDimension(sectionView, LeftDimension2, windowframeHeight2, windowFrameLevelDimension);
 
-                    if(genericModelWidthref.Size !=2)
-                    {
-                        doc.Create.NewDimension(sectionView, genericModelWidthLine2, genericModelWidth2ref, genericModelDimension);
-                    }
+                    Dimension windowFrameWidth = doc.Create.NewDimension(sectionView, TopDimension1, windowframeWidth, windowFrameDimension);
 
+                    #region//Add dimension to selection filter
+                    filter.AddSingle(windowFrameWidth.Id);
+                    filter.AddSingle(windowFrameHeight1.Id);
+                    filter.AddSingle(windowFrameHeight2.Id);
                     #endregion
 
-                    TaskDialog.Show("fff", sb.ToString());
+                    #region//Add prefix to window frame dimension
+                    foreach (DimensionSegment seg in windowFrameHeight2.Segments)
+                    {
+                        seg.Prefix = "vlp +";
+                    }
+                    #endregion
 
+                    #region//Add height dimension 2 and/or 3
+                    if (mainWindowHeight1.Size != 2)
+                    {
+                        doc.Create.NewDimension(sectionView, RightDimension2, mainWindowHeight2, windowDimension);
+                        if(window != null)
+                        {
+                            Dimension doorHandleHeight1 = doc.Create.NewDimension(sectionView, RightDimension3, doorHandleHeightLevel, doorHandleDimension);
+                            Dimension doorHandleHeight2 = doc.Create.NewDimension(sectionView, windowDimension1, doorHandleHeight, doorHandleDimension);
+
+                            foreach (DimensionSegment seg in doorHandleHeight1.Segments)
+                            {
+                                seg.Prefix = "GH =";
+                                seg.Suffix = "+ vlp";
+                            }
+
+                            foreach (DimensionSegment seg in doorHandleHeight2.Segments)
+                            {
+                                seg.Prefix = "GH =";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(window != null)
+                        {
+                            Dimension doorHandleHeight1 = doc.Create.NewDimension(sectionView, RightDimension2, doorHandleHeightLevel, doorHandleDimension);
+                            Dimension doorHandleHeight2 = doc.Create.NewDimension(sectionView, windowDimension1, doorHandleHeight, doorHandleDimension);
+
+                            foreach (DimensionSegment seg in doorHandleHeight1.Segments)
+                            {
+                                seg.Prefix = "GH =";
+                                seg.Suffix = "+ vlp";
+                            }
+
+                            foreach (DimensionSegment seg in doorHandleHeight2.Segments)
+                            {
+                                seg.Prefix = "GH =";
+                            }
+                        }
+                    }
+                    #endregion
+
+                    #region//Add width dimension 2
+                    if (mainWindowWidth1.Size !=2)
+                    {
+                        doc.Create.NewDimension(sectionView, BottomDimension2, mainWindowWidth2, windowDimension);
+                    }
+                    #endregion
+
+                    #endregion
                     tx.Commit();
                 }
                 #endregion
             }
+            #endregion
+
             return Result.Succeeded;
         }
 
