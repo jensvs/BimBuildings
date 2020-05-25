@@ -33,7 +33,7 @@ namespace BimBuildings.Ribbon
             RibbonPanel test = application.CreateRibbonPanel(tabName, "Test");
 
             #region//Create PushButtonData
-            PushButtonData HelloWorld = new PushButtonData("Hello World", "Hello\nWorld", thisAssemblyPath, "BimBuildings.Command.HelloWorld");
+            PushButtonData HelloWorld = new PushButtonData("Test", "Test", thisAssemblyPath, "BimBuildings.ViewsOnSheets");
             #endregion
 
             #region//Create Buttons

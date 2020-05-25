@@ -90,6 +90,13 @@
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSingle.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple%28entire project%29.cs" />
     <Compile Include="Command\Annotations\RSP\RenameSharedParameters.cs" />
+    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheetsData.cs" />
+    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.Designer.cs">
+      <DependentUpon>ViewsOnSheetsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -126,6 +133,9 @@
     <Content Include="Resources\Settings 16x16.png" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.resx">
+      <DependentUpon>ViewsOnSheetsForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Command\Annotations\TagWallLayers\TagWallLayersForm.resx">
       <DependentUpon>TagWallLayersForm.cs</DependentUpon>
     </EmbeddedResource>

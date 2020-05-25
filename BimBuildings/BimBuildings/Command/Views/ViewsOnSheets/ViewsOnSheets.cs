@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace BimBuildings.Command.Views.ViewsOnSheets
+namespace BimBuildings
 {
     [Autodesk.Revit.Attributes.Transaction(Autodesk.Revit.Attributes.TransactionMode.Manual)]
     [Autodesk.Revit.Attributes.Regeneration(Autodesk.Revit.Attributes.RegenerationOption.Manual)]
@@ -34,6 +35,30 @@ namespace BimBuildings.Command.Views.ViewsOnSheets
             }
             #endregion
 
+            #region//select titleblock
+
+            #endregion
+
+            ViewsOnSheetsForm form = new ViewsOnSheetsForm(uidoc);
+            form.ShowDialog();
+
+            List<Element> items = collector.GetTitleBlocks(doc);
+
+            foreach(Element item in items)
+            {
+                sb.Append(item.Name + "\n");
+
+            }
+
+            TaskDialog.Show("test", sb.ToString());
+
+
+            #region//Create new sheet
+            //ViewSheet vs = ViewSheet.Create(doc, titleblock)  
+
+            #endregion
+
+            return Result.Succeeded;
 
         }
 

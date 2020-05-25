@@ -407,5 +407,19 @@ namespace BimBuildings.Util
 
             return List_Filters;
         }
+
+        //*********************************************** Title blocks ********************************************************************//
+        public List<Element> GetTitleBlocks(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> TitleBlocks = collector.OfCategory(BuiltInCategory.OST_TitleBlocks).WhereElementIsElementType().ToElements();
+            List<Element> List_TitleBlocks = new List<Element>();
+
+            foreach (Element w in TitleBlocks)
+            { List_TitleBlocks.Add(w); }
+
+            return List_TitleBlocks;
+
+        }
     }
 }
