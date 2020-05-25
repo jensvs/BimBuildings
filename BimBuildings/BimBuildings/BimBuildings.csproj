@@ -98,6 +98,7 @@
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommandData.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommand.cs" />
     <Compile Include="Command\Helpers\Message.cs" />
+    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheets.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

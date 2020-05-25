@@ -1,10 +1,10 @@
 ﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BimBuildings.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BimBuildings.Util;
 
 namespace BimBuildings.Command.Annotations.AutoDimension
 {
