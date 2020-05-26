@@ -20,11 +20,8 @@ namespace BimBuildings
             StringBuilder sb = new StringBuilder();
             Collector collector = new Collector();
             LengthUnitConverter converter = new LengthUnitConverter();
-            #endregion
-
-            #region//Application context
-            UIDocument uidoc = commandData.Application.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            var uidoc = commandData.Application.ActiveUIDocument;
+            var doc = uidoc.Document;
             #endregion
 
             #region//Check if current project is family
@@ -39,22 +36,12 @@ namespace BimBuildings
 
             #endregion
 
-            ViewsOnSheetsForm form = new ViewsOnSheetsForm(uidoc);
-            form.ShowDialog();
 
-            List<Element> items = collector.GetTitleBlocks(doc);
-
-            foreach(Element item in items)
-            {
-                sb.Append(item.Name + "\n");
-
-            }
-
-            TaskDialog.Show("test", sb.ToString());
+            //TaskDialog.Show("test", sb.ToString());
 
 
             #region//Create new sheet
-            //ViewSheet vs = ViewSheet.Create(doc, titleblock)  
+            //ViewSheet vs = ViewSheet.Create(doc, item.id)  
 
             #endregion
 

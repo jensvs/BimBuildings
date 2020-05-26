@@ -57,7 +57,7 @@ namespace BimBuildings.Ribbon
             annotationSingle.LargeImage = singleLargeImage;
 
             BitmapImage multipleLargeImage = GetBitmapImage("Dimensions 32x32.png");
-            annotationMultiple.LargeImage = singleLargeImage;
+            annotationMultiple.LargeImage = multipleLargeImage;
 
             BitmapImage deleteLargeImage = GetBitmapImage("Delete 16x16.png");
             annotationDelete.LargeImage = deleteLargeImage;
@@ -74,7 +74,7 @@ namespace BimBuildings.Ribbon
             annotationSingle.Image = singleSmallImage;
 
             BitmapImage multipleSmallImage = GetBitmapImage("Dimensions 16x16.png");
-            annotationMultiple.Image = singleSmallImage;
+            annotationMultiple.Image = multipleSmallImage;
 
             BitmapImage deleteSmallImage = GetBitmapImage("Delete 16x16.png");
             annotationDelete.Image = deleteSmallImage;

@@ -1,16 +1,16 @@
-﻿namespace BimBuildings
+﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using BimBuildings.Util;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows.Forms;
+
+namespace BimBuildings
 {
-    using System;
-    using System.Windows.Forms;
-    using System.Collections.Generic;
-    using BimBuildings.Util;
-
-    using Autodesk.Revit.UI;
-    using Autodesk.Revit.DB;
-
-
     public partial class ViewsOnSheetsForm : System.Windows.Forms.Form
     {
+        #region//general form settings
         public System.Drawing.Point mouseLocation;
 
         private void Form_MouseDown(object sender, MouseEventArgs e)
@@ -20,31 +20,13 @@
 
         private void Form_MouseMove(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
                 System.Drawing.Point mousePose = System.Windows.Forms.Control.MousePosition;
                 mousePose.Offset(mouseLocation.X, mouseLocation.Y);
                 Location = mousePose;
             }
         }
-
-        #region private members
-        private UIDocument uidoc = null;
-
-        #endregion
-
-        #region constructor
-
-
-        public ViewsOnSheetsForm(UIDocument uIDocument)
-        {
-            InitializeComponent();
-            uidoc = uIDocument;
-        }
-
-        #endregion
-
-        #region events
         private void btnOk_Click(object sender, System.EventArgs e)
         {
             this.DialogResult = DialogResult.OK;
@@ -56,15 +38,27 @@
             this.DialogResult = DialogResult.Cancel;
             Close();
         }
+        #endregion
+
+        #region//Utils
+        StringBuilder sb = new StringBuilder();
+        Collector collector = new Collector();
+        LengthUnitConverter converter = new LengthUnitConverter();
+        public UIDocument uidoc = null;
+        var doc = uidoc.Document;
+        #endregion
+
+
+        public ViewsOnSheetsForm(UIDocument uIDocument)
+        {
+            InitializeComponent();
+            uidoc = uIDocument;
+        }
 
         private void ViewsOnSheetsForm_Load(object sender, System.EventArgs e)
         {
             PopulateTitleBlockList();
         }
-
-        #endregion
-
-        #region private methods
 
         private void PopulateTitleBlockList()
         {
@@ -74,35 +68,30 @@
             List<ViewsOnSheetsData> titleBlocks = new List<ViewsOnSheetsData>();
             List<Element> elements = collector.GetTitleBlocks(doc);
 
-            
+
 
             foreach (Element item in elements)
             {
+                ElementType itemtype = item as ElementType;
 
 
-
-                string familyName = item.
-
-                titleBlocks.Add(new ViewsOnSheetsData() { element = item, familyandtypename = item.Name + ":" + fadf}) ;
-
+                titleBlocks.Add(new ViewsOnSheetsData() { element = item, familyandtypename = itemtype.FamilyName + ":" + item.Name });
 
             }
-            #endregion
+#endregion
 
             cmbTitleBlock.DataSource = titleBlocks;
-            cmbTitleBlock.DisplayMember = "element";
+            cmbTitleBlock.DisplayMember = "familyandtypename";
             cmbTitleBlock.ValueMember = "element";
-
+            cmbTitleBlock. = "element";
         }
 
         public void cmbTitleBlock_SelectionChangeCommitted(object sender, EventArgs e)
         {
             var doc = uidoc.Document;
-            Element titleblock = doc.GetElement(((KeyValuePair<string, ElementId>)cmbTitleBlock.SelectedItem).Value);
+            Element titleblock = Element;
 
             MessageBox.Show("test123", titleblock.Name);
         }
-
-
     }
 }
