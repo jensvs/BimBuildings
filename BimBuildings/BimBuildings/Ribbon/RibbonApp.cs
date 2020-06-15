@@ -43,6 +43,7 @@ namespace BimBuildings.Ribbon
 
             #region//Create RibbonPanel Dimensions
             RibbonPanel dimensions = application.CreateRibbonPanel(tabName, "Dimensions");
+            RibbonPanel export = application.CreateRibbonPanel(tabName, "Export");
 
             #region//Create PushButtonData
             PushButtonData annotationSingle = new PushButtonData("AnnotationSingle", "Single\nAnnotation", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationSingle");
@@ -50,6 +51,9 @@ namespace BimBuildings.Ribbon
             PushButtonData annotationDelete = new PushButtonData("AnnotationDelete", "Delete", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationDelete");
             PushButtonData annotationDeleteAll = new PushButtonData("AnnotationDeleteAll", "Delete All", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationDeleteAll");
             PushButtonData annotationSettings = new PushButtonData("AnnotationSettings", "Settings", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationSettings");
+
+            PushButtonData exportSchedules = new PushButtonData("ExportSchedules", "Export\nSchedules", thisAssemblyPath, "BimBuildings.Command.Export.ExportSchedules");
+
             #endregion
 
             #region//Set LargeImage 32x32
@@ -67,6 +71,9 @@ namespace BimBuildings.Ribbon
 
             BitmapImage settingsLargeImage = GetBitmapImage("Settings 16x16.png");
             annotationSettings.LargeImage = settingsLargeImage;
+
+            BitmapImage exportLargeImage = GetBitmapImage("Dimensions 32x32.png");
+            exportSchedules.LargeImage = exportLargeImage;
             #endregion
 
             #region//Set SmallImage 16x16
@@ -84,6 +91,9 @@ namespace BimBuildings.Ribbon
 
             BitmapImage settingsSmallImage = GetBitmapImage("Settings 16x16.png");
             annotationSettings.Image = settingsSmallImage;
+
+            BitmapImage exportSmallImage = GetBitmapImage("Dimensions 16x16.png");
+            exportSchedules.Image = exportSmallImage;
             #endregion
 
             #region//Create Buttons
@@ -91,6 +101,8 @@ namespace BimBuildings.Ribbon
             dimensions.AddItem(annotationMultiple);
             dimensions.AddSeparator();
             dimensions.AddStackedItems(annotationDelete, annotationDeleteAll, annotationSettings);
+
+            export.AddItem(exportSchedules);
             #endregion
 
             #endregion

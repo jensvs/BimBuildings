@@ -90,6 +90,7 @@
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationSingle.cs" />
     <Compile Include="Command\Annotations\AutoDimension\FacedoAnnotationMultiple%28entire project%29.cs" />
     <Compile Include="Command\Annotations\RSP\RenameSharedParameters.cs" />
+    <Compile Include="Command\Export\ExportSchedules\ExportSchedules.cs" />
     <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheetsData.cs" />
     <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.cs">
       <SubType>Form</SubType>
@@ -163,6 +164,11 @@ if exist "$(ProgramData)\Autodesk\REVIT\Addins\2019" xcopy "$(ProjectDir)$(Outpu
     <PostBuildEvent>if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" copy "$(ProjectDir)$(OutputPath)*.dll" "$(AppData)\Autodesk\REVIT\Addins\2019"
 if exist "$(AppData)\Autodesk\REVIT\Addins\2019" xcopy /I /Y "$(ProjectDir)$(OutputPath)..\..\Resources"  "$(AppData)\Autodesk\REVIT\Addins\2019\Resources"
+
+if exist "$(AppData)\Autodesk\REVIT\Addins\2020" copy "$(ProjectDir)*.addin" "$(AppData)\Autodesk\REVIT\Addins\2020"
+if exist "$(AppData)\Autodesk\REVIT\Addins\2020" copy "$(ProjectDir)$(OutputPath)*.dll" "$(AppData)\Autodesk\REVIT\Addins\2020"
+if exist "$(AppData)\Autodesk\REVIT\Addins\2020" xcopy /I /Y "$(ProjectDir)$(OutputPath)..\..\Resources"  "$(AppData)\Autodesk\REVIT\Addins\2020\Resources"
+
 </PostBuildEvent>
   </PropertyGroup>
   <!-- These are your Clean actions that erase your debug dll to keep it fresh -->

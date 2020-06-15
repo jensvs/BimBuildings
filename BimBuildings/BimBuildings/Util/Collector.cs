@@ -217,6 +217,26 @@ namespace BimBuildings.Util
             return List_Views;
         }
 
+        //*********************************************** ViewSchedules ********************************************************************//
+        public List<View> GetViewSchedules(Document doc, ViewType viewType)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            ICollection<Element> Views = collector.OfClass(typeof(ViewSchedule)).WhereElementIsNotElementType().ToElements();
+            List<View> List_ViewSchedules = new List<View>();
+
+
+
+            foreach (View w in Views)
+            {
+                if (!w.IsTemplate && w.ViewType == viewType)
+                {
+                    List_ViewSchedules.Add(w);
+                }
+            }
+
+            return List_ViewSchedules;
+        }
+
         //*********************************************** ViewsTemplates ********************************************************************//
         public List<View> GetViewTemplates(Document doc)
         {
