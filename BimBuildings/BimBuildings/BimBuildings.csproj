@@ -136,6 +136,8 @@
     <Content Include="Resources\Excel 16x16.png" />
     <Content Include="Resources\Excel 32x32.png" />
     <Content Include="Resources\Settings 16x16.png" />
+    <Content Include="Resources\Worksheet 16x16.png" />
+    <Content Include="Resources\Worksheet 32x32.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.resx">
