@@ -109,14 +109,14 @@
     </Compile>
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommandData.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommand.cs" />
-    <Compile Include="Util\WindowType.cs" />
-    <Compile Include="Util\Message.cs" />
-    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheets.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Util\WindowType.cs" />
+    <Compile Include="Util\Message.cs" />
+    <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheets.cs" />
     <Compile Include="Ribbon\RibbonApp.cs" />
     <Compile Include="Command\HelloWorld.cs" />
     <Compile Include="Type\LengthUnitType.cs" />
@@ -133,11 +133,9 @@
     <Content Include="Resources\Delete 16x16.png" />
     <Content Include="Resources\Dimensions 16x16.png" />
     <Content Include="Resources\Dimensions 32x32.png" />
-    <Content Include="Resources\Excel 16x16.png" />
-    <Content Include="Resources\Excel 32x32.png" />
+    <None Include="Resources\Excel 32x32.png" />
+    <None Include="Resources\Excel 16x16.png" />
     <Content Include="Resources\Settings 16x16.png" />
-    <Content Include="Resources\Worksheet 16x16.png" />
-    <Content Include="Resources\Worksheet 32x32.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Command\Views\ViewsOnSheets\ViewsOnSheetsForm.resx">
@@ -147,7 +145,7 @@
       <DependentUpon>TagWallLayersForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
