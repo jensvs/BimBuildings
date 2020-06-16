@@ -45,7 +45,7 @@ namespace BimBuildings
         Collector collector = new Collector();
         LengthUnitConverter converter = new LengthUnitConverter();
         public UIDocument uidoc = null;
-        var doc = uidoc.Document;
+        Document doc = null;
         #endregion
 
 
@@ -53,6 +53,7 @@ namespace BimBuildings
         {
             InitializeComponent();
             uidoc = uIDocument;
+            doc = uidoc.Document;
         }
 
         private void ViewsOnSheetsForm_Load(object sender, System.EventArgs e)
@@ -78,18 +79,16 @@ namespace BimBuildings
                 titleBlocks.Add(new ViewsOnSheetsData() { element = item, familyandtypename = itemtype.FamilyName + ":" + item.Name });
 
             }
-#endregion
 
             cmbTitleBlock.DataSource = titleBlocks;
             cmbTitleBlock.DisplayMember = "familyandtypename";
             cmbTitleBlock.ValueMember = "element";
-            cmbTitleBlock. = "element";
         }
 
         public void cmbTitleBlock_SelectionChangeCommitted(object sender, EventArgs e)
         {
             var doc = uidoc.Document;
-            Element titleblock = Element;
+            Element titleblock = null;
 
             MessageBox.Show("test123", titleblock.Name);
         }

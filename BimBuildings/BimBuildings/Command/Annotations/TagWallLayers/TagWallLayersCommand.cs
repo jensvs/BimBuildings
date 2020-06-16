@@ -106,7 +106,7 @@
 
             foreach (var layer in layers)
             {
-                var material = doc.GetElement(layer.MaterialId) as Material;
+                Material material = doc.GetElement(layer.MaterialId) as Material;
 
                 msg.AppendLine();
 

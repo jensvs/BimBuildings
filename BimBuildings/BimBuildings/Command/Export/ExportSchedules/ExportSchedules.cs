@@ -43,27 +43,37 @@ namespace BimBuildings.Command.Export.ExportSchedules
             }
             #endregion
 
+            #region//create new directory
+            string append = "schedules ";
+            string pathName = doc.PathName.ToString();
+            string title = doc.Title.ToString();
+            int titleLength = title.Length + 4;
+            string newpath = pathName.Remove(pathName.Length - titleLength, titleLength);
 
-            string folder = doc.PathName.ToString() + DateTime.Now.ToString("yyyMMdd HH'u'mm'm'");
+            string folder = newpath + append + DateTime.Now.ToString("yyyMMdd HH'u'mm'm'");
             Directory.CreateDirectory(folder);
-            sb.Append(folder);
+            //sb.Append(folder);
+            #endregion
 
+            #region//ViewSchedule collector
+            List<View> List_ViewSchedules = collector.GetViewSchedules(doc, ViewType.Schedule);
+            //sb.Append("\n"+ List_ViewSchedules);
+            #endregion
 
-            List<View> List_ViewSchedules = new List<View>();
-            sb.Append("\n"+ List_ViewSchedules);
-
-
+            #region//Export Options
             ViewScheduleExportOptions options = new ViewScheduleExportOptions();
+            #endregion
 
-
-            foreach(ViewSchedule V in List_ViewSchedules)
+            #region//Export Schedules
+            foreach (ViewSchedule V in List_ViewSchedules)
             {
-                V.Export(folder, V.Name, options);
+                V.Export(folder, V.Name + ".csv", options);
             }
+            #endregion
 
-            TaskDialog.Show("TEST", sb.ToString());
-
+            //TaskDialog.Show("TEST", sb.ToString());
             return Result.Succeeded;
+
         }
     }
 }

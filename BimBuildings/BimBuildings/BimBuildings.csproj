@@ -47,6 +47,9 @@
     <!-- Starts Revit 2019 -->
     <StartProgram>$(ProgramW6432)\Autodesk\Revit 2019\Revit.exe</StartProgram>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <!-- References to include in your project.
        If you have non standard location for revit you will have to edit the paths -->
@@ -106,6 +109,7 @@
     </Compile>
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommandData.cs" />
     <Compile Include="Command\Annotations\TagWallLayers\TagWallLayersCommand.cs" />
+    <Compile Include="Util\WindowType.cs" />
     <Compile Include="Util\Message.cs" />
     <Compile Include="Command\Views\ViewsOnSheets\ViewsOnSheets.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -129,6 +133,8 @@
     <Content Include="Resources\Delete 16x16.png" />
     <Content Include="Resources\Dimensions 16x16.png" />
     <Content Include="Resources\Dimensions 32x32.png" />
+    <Content Include="Resources\Excel 16x16.png" />
+    <Content Include="Resources\Excel 32x32.png" />
     <Content Include="Resources\Settings 16x16.png" />
   </ItemGroup>
   <ItemGroup>

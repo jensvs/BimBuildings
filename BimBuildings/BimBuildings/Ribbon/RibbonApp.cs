@@ -52,8 +52,7 @@ namespace BimBuildings.Ribbon
             PushButtonData annotationDeleteAll = new PushButtonData("AnnotationDeleteAll", "Delete All", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationDeleteAll");
             PushButtonData annotationSettings = new PushButtonData("AnnotationSettings", "Settings", thisAssemblyPath, "BimBuildings.Command.Annotations.AutoDimension.FacedoAnnotationSettings");
 
-            PushButtonData exportSchedules = new PushButtonData("ExportSchedules", "Export\nSchedules", thisAssemblyPath, "BimBuildings.Command.Export.ExportSchedules");
-
+            PushButtonData exportSchedules = new PushButtonData("ExportSchedules", "Export\nSchedules", thisAssemblyPath, "BimBuildings.Command.Export.ExportSchedules.ExportSchedules");
             #endregion
 
             #region//Set LargeImage 32x32
@@ -72,7 +71,7 @@ namespace BimBuildings.Ribbon
             BitmapImage settingsLargeImage = GetBitmapImage("Settings 16x16.png");
             annotationSettings.LargeImage = settingsLargeImage;
 
-            BitmapImage exportLargeImage = GetBitmapImage("Dimensions 32x32.png");
+            BitmapImage exportLargeImage = GetBitmapImage("Excel 32x32.png");
             exportSchedules.LargeImage = exportLargeImage;
             #endregion
 
@@ -92,7 +91,7 @@ namespace BimBuildings.Ribbon
             BitmapImage settingsSmallImage = GetBitmapImage("Settings 16x16.png");
             annotationSettings.Image = settingsSmallImage;
 
-            BitmapImage exportSmallImage = GetBitmapImage("Dimensions 16x16.png");
+            BitmapImage exportSmallImage = GetBitmapImage("Excel 16x16.png");
             exportSchedules.Image = exportSmallImage;
             #endregion
 
